@@ -65,4 +65,18 @@
 
 ---
 
+### Entrada 05: Resolución de Inconsistencias de Especificaciones (Milestone 1)
+* **Fecha:** 2026-11-11
+* **Responsable:** Estudiante 1 — Product / Spec Lead (Ivan Wu)
+* **Actividad:** Análisis y resolución integral de las 13 inconsistencias detectadas en la revisión de especificaciones del Dev Lead (Milestone 1: issues #6, #7, #8, #9, #10, #11, #12, #13, #15, #17, #18, #19, #20).
+* **IA Utilizada:** Antigravity / Gemini 3.8 Flash (DeepMind Agentic Environment).
+* **Solicitud (Prompt):**
+  > *"Analiza el milestone 1 y resuelve todas las inconsistencias de especificación reportadas: unificar estados canónicos (CONFIRMADA, CANCELADA, COMPLETADA), clarificar orden de validación y solapamiento, calcular end_time en servidor, fijar códigos HTTP unificados (422, 400, 404, 409), reforzar formato booking_id a 8 caracteres criptográficos, marcar admin fuera de alcance v1 (ADR-006), definir zona horaria America/Panama y evaluación perezosa (ADR-007), unificar nombres de tests en TypeScript, incluir Básquetbol en RF-01, clarificar validación de teléfono (7-15 dígitos), agregar estado PASADO a la grilla y agregar escenarios BDD para límite de 30 días."*
+* **Resultado Obtenido:**
+  Actualización coordinada de `specs/requirements.md`, `specs/business-rules.md`, `specs/acceptance-criteria.md`, `specs/api.md`, `specs/architecture.md`, `specs/implementation-plan.md`, `docs/decisions.md` (ADR-006, ADR-007), `docs/testing.md` y `README.md`.
+* **Decisión Tomada:**
+  Formalizar el pipeline de validación en 4 fases, fijar un formato estándar de error JSON, adoptar evaluación perezosa para el estado COMPLETADA sin daemons y estandarizar la convención de pruebas automatizadas a TypeScript (Vitest + Fastify).
+
+---
+
 *(Nuevas entradas se añadirán conforme los Estudiantes 2 y 3 avancen en arquitectura, implementación y testing, o cuando se aplique el cambio inesperado de requerimiento).*

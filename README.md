@@ -97,4 +97,4 @@ Para cumplir con la sección 13 de la rúbrica del proyecto (*"Introducir un cam
   3. Implementar el backend y frontend en `src/`.
 * **Estudiante 3 (QA):**
   1. Diseñar el plan en `docs/testing.md`.
-  2. Implementar la prueba prioritaria de anticolisión en `tests/test_conflict.py`.
+  2. Implementar la prueba prioritaria de anticolisión en `tests/integration/conflict.test.ts`.

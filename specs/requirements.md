@@ -19,8 +19,9 @@
 1. **Cliente / Jugador (Sin Cuenta):**
    * Usuario que desea consultar disponibilidad en una fecha determinada y apartar una cancha introduciendo únicamente sus datos de contacto (Nombre completo, Teléfono, Correo electrónico).
    * Puede consultar y cancelar su reserva mediante su `booking_id`.
-2. **Administrador / Operador del Complejo:**
+2. **Administrador / Operador del Complejo [FUERA DE ALCANCE EN V1 — Backlog v2]:**
    * Responsable de supervisar la grilla de reservas, verificar los turnos del día y dar de alta/bloquear canchas por mantenimiento.
+   * *Nota de alcance v1:* De acuerdo con ADR-006, la gestión por panel de administración queda fuera del alcance inicial. Las canchas activas se inicializan mediante datos semilla (*seed*) en la base de datos.
 
 ---
 
@@ -29,7 +30,7 @@
 ### US-01: Consulta de Canchas y Disponibilidad de Horarios
 * **Como** cliente interesado en organizar un partido deportivo,
 * **Quiero** seleccionar una cancha, un deporte y una fecha en el calendario,
-* **Para** visualizar los bloques de horarios disponibles y los que ya se encuentran reservados sin tener que iniciar sesión.
+* **Para** visualizar los bloques de horarios disponibles, los ocupados y los pasados sin tener que iniciar sesión.
 
 ### US-02: Creación de Reserva Sin Cuenta
 * **Como** cliente que encontró un horario disponible,
@@ -44,17 +45,18 @@
 ### US-04: Consulta de Estado de Reserva mediante Código Único
 * **Como** cliente que ya reservó previamente,
 * **Quiero** ingresar mi código identificador de reserva (`booking_id`),
-* **Para** consultar los detalles de mi turno (cancha, fecha, hora, estado: Pendiente/Confirmada/Cancelada).
+* **Para** consultar los detalles de mi turno (cancha, fecha, hora, estado: Confirmada/Cancelada/Completada).
 
 ### US-05: Cancelación de Reserva por el Cliente
 * **Como** cliente que no podrá asistir a su turno,
 * **Quiero** cancelar mi reserva usando mi código identificador con al menos 2 horas de anticipación,
 * **Para** liberar la cancha y permitir que otro equipo pueda aprovechar el horario.
 
-### US-06: Visualización de Agenda General (Administrador)
+### US-06: Visualización de Agenda General y Bloqueo de Canchas (Administrador) [FUERA DE ALCANCE EN V1 — Backlog v2]
 * **Como** operador del complejo deportivo,
-* **Quiero** listar todas las reservas activas y filtradas por fecha o cancha,
+* **Quiero** listar todas las reservas activas y filtradas por fecha o cancha y bloquear turnos por mantenimiento,
 * **Para** organizar el acceso al complejo y coordinar el encendido de reflectores y mantenimiento.
+* *Nota:* Diferida para la versión 2.0 según ADR-006.
 
 ---
 
@@ -62,14 +64,14 @@
 
 | ID | Módulo | Requisito Funcional | Prioridad |
 | :--- | :--- | :--- | :--- |
-| **RF-01** | Catálogo | El sistema debe listar las canchas deportivas activas, indicando nombre, tipo de deporte (Fútbol 7, Pádel, Tenis), tarifa por hora y estado operativo. | Alta (Must) |
-| **RF-02** | Disponibilidad | El sistema debe calcular y presentar los slots horarios de 60 minutos (dentro del rango 08:00 a 23:00) para una fecha y cancha seleccionada, distinguiendo entre `DISPONIBLE` y `OCUPADO`. | Alta (Must) |
-| **RF-03** | Registro de Reserva | El sistema debe permitir registrar una reserva recibiendo: ID de cancha, fecha, hora de inicio, nombre del cliente, teléfono y email de contacto. No se solicitará contraseña ni autenticación previa. | Alta (Must) |
-| **RF-04** | Generación de ID Único | Tras crear exitosamente la reserva, el sistema debe generar y retornar un identificador alfanumérico único no predecible (ej. formato `CY-2026-XXXX` o UUID truncado de 8 caracteres alfanuméricos). | Alta (Must) |
-| **RF-05** | Prevención de Doble Reserva | El sistema debe validar que no exista una reserva con estado `CONFIRMADA` o `ACTIVA` para la misma cancha en el mismo intervalo de tiempo. Si hay conflicto, debe rechazar la transacción con código de error `409 Conflict`. | Crítica (Must) |
-| **RF-06** | Consulta por Código | El sistema debe proveer una función/endpoint para consultar una reserva específica mediante su `booking_id`, devolviendo todos los datos del turno. | Alta (Must) |
-| **RF-07** | Cancelación Autónoma | El sistema debe permitir cambiar el estado de la reserva a `CANCELADA` si la solicitud ocurre con al menos 2 horas de anticipación respecto a la hora de inicio pactada. | Media (Should) |
-| **RF-08** | Control de Estados | Cada reserva debe transicionar entre los estados canónicos: `CONFIRMADA` $\rightarrow$ `CANCELADA` o `FINALIZADA`. | Alta (Must) |
+| **RF-01** | Catálogo | El sistema debe listar las canchas deportivas activas, indicando nombre, tipo de deporte (Fútbol 7, Pádel, Tenis, Básquetbol), tarifa por hora y estado operativo. | Alta (Must) |
+| **RF-02** | Disponibilidad | El sistema debe calcular y presentar los slots horarios de 60 minutos (dentro del rango 08:00 a 23:00 en zona horaria America/Panama) para una fecha y cancha seleccionada, distinguiendo entre `DISPONIBLE`, `OCUPADO` y `PASADO` (horas ya transcurridas en la fecha actual). | Alta (Must) |
+| **RF-03** | Registro de Reserva | El sistema debe permitir registrar una reserva recibiendo: ID de cancha, fecha, hora de inicio (`start_time`), nombre del cliente (3-80 caracteres), teléfono de contacto (7-15 dígitos numéricos válidos) y email con formato RFC válido. La hora de fin (`end_time`) será calculada automáticamente por el servidor (`start_time + 60 min`). No se solicitará contraseña ni autenticación previa. | Alta (Must) |
+| **RF-04** | Generación de ID Único | Tras crear exitosamente la reserva, el sistema debe generar y retornar un identificador alfanumérico único no predecible con formato `CY-` + 8 caracteres criptográficamente seguros en base32 sin caracteres ambiguos (ej. `CY-7K3M9QXA`, ~1.1 billones de combinaciones), protegido contra ataques de enumeración mediante limitación de tasa (*rate limiting*). | Alta (Must) |
+| **RF-05** | Prevención de Doble Reserva | El sistema debe validar que no exista una reserva con estado `CONFIRMADA` para la misma cancha en el mismo intervalo de tiempo. Si hay conflicto, debe rechazar la transacción con código de error HTTP `409 Conflict`. | Crítica (Must) |
+| **RF-06** | Consulta por Código | El sistema debe proveer una función/endpoint para consultar una reserva específica mediante su `booking_id`, devolviendo todos los datos del turno y su estado canónico actual. | Alta (Must) |
+| **RF-07** | Cancelación Autónoma | El sistema debe permitir cambiar el estado de la reserva a `CANCELADA` si la solicitud ocurre con al menos 2 horas (120 minutos) de anticipación respecto a la hora de inicio pactada en hora local de Panamá. | Media (Should) |
+| **RF-08** | Control de Estados | Cada reserva debe transicionar exclusivamente entre los estados canónicos: `CONFIRMADA` $\rightarrow$ `CANCELADA` o `COMPLETADA`. | Alta (Must) |
 
 ---
 

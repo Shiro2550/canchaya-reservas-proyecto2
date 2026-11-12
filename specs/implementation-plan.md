@@ -55,7 +55,7 @@
 
 ### Milestone 4: Aseguramiento de Calidad y Pruebas Automatizadas (Para Estudiante 3 - QA Lead)
 * [ ] **TASK-16:** Planificación de la suite de pruebas en `docs/testing.md`.
-* [ ] **TASK-17 (OBLIGATORIA):** Creación del test automatizado de **No Doble Reserva** en `tests/test_conflict.py`:
+* [ ] **TASK-17 (OBLIGATORIA):** Creación del test automatizado de **No Doble Reserva** en `tests/integration/conflict.test.ts`:
   * Crear reserva inicial A.
   * Intentar crear reserva B en horario coincidente $\rightarrow$ Aserción: Retornar HTTP 409 y 0 reservas duplicadas.
 * [ ] **TASK-18:** Pruebas de reglas de tiempo (rechazo de reservas en el pasado, fuera de horario operativo 08:00-23:00).

@@ -3,25 +3,25 @@
 **Proyecto:** Sistema de Reservas Especializado de Canchas Deportivas (`CanchaYa`)  
 **Curso:** Tópicos Especiales II — Prof. Regis Rivera  
 **Rol Responsable:** Estudiante 2 — Architecture / Development Lead (David)  
-**Versión:** 1.0.0 (propuesta)  
+**Versión:** 1.0.0  
 **Fecha:** 2026-11-11  
-**Estado:** Propuesta para revisión del equipo (Product Lead y QA Lead)  
+**Estado:** Aprobado y Consensuado por el Equipo (Product Lead, Dev Lead y QA Lead)  
 
 ---
 
 > [!NOTE]  
-> Esta arquitectura se deriva de `specs/outcomes.md`, `specs/requirements.md`, `specs/business-rules.md` y `specs/acceptance-criteria.md`. Los puntos marcados como **[PENDIENTE PL]** dependen de aclaraciones del Product Lead sobre inconsistencias detectadas en las especificaciones y se confirmarán antes de implementar el módulo afectado.
+> Esta arquitectura se deriva de `specs/outcomes.md`, `specs/requirements.md`, `specs/business-rules.md` y `specs/acceptance-criteria.md`. Todas las aclaraciones y resoluciones de especificaciones solicitadas al Product Lead (Ivan Wu) para el Milestone 1 han sido formalizadas y aprobadas.
 
 ## 0. Alcance y Supuestos de Arquitectura
 
 | ID | Supuesto / Decisión | Estado |
 | :--- | :--- | :--- |
-| **AS-01** | **Administrador fuera de alcance en la v1.** US-06 (agenda general) y el bloqueo de canchas no se implementan. Las canchas se cargan mediante datos semilla (*seed*) en la base de datos. | Acordado por el equipo de desarrollo — [PENDIENTE PL] registrar en `docs/decisions.md` |
-| **AS-02** | Estados canónicos de la reserva: `CONFIRMADA`, `CANCELADA`, `COMPLETADA`. | [PENDIENTE PL] unificar con RF-08 / US-04 / RF-05 |
-| **AS-03** | El cliente envía solo `start_time`; el servidor calcula `end_time = start_time + 60 min`. | [PENDIENTE PL] |
-| **AS-04** | Zona horaria del complejo: **America/Panama** (UTC−5, sin horario de verano). | [PENDIENTE PL] |
-| **AS-05** | El estado `COMPLETADA` se calcula al leer la reserva (si está `CONFIRMADA` y ya pasó su hora de fin), sin tareas programadas. | [PENDIENTE PL] |
-| **AS-06** | Códigos HTTP y orden de validación según la sección 6 de este documento. | [PENDIENTE PL] |
+| **AS-01** | **Administrador fuera de alcance en la v1.** US-06 (agenda general) y el bloqueo de canchas no se implementan. Las canchas se cargan mediante datos semilla (*seed*) en la base de datos. | **Aprobado** — Registrado en `docs/decisions.md` (ADR-006) |
+| **AS-02** | Estados canónicos de la reserva: `CONFIRMADA`, `CANCELADA`, `COMPLETADA`. | **Aprobado** — Unificado en RF-08, US-04, BR-04 y ADR-007 |
+| **AS-03** | El cliente envía solo `start_time`; el servidor calcula `end_time = start_time + 60 min`. | **Aprobado** — Formalizado en RF-03, BR-02 y `specs/api.md` |
+| **AS-04** | Zona horaria del complejo: **America/Panama** (UTC−5, sin horario de verano). | **Aprobado** — Registrado en BR-02 y `docs/decisions.md` (ADR-007) |
+| **AS-05** | El estado `COMPLETADA` se calcula al leer la reserva (si está `CONFIRMADA` y ya pasó su hora de fin), sin tareas programadas. | **Aprobado** — Formalizado en BR-04 y ADR-007 |
+| **AS-06** | Códigos HTTP y orden de validación según la sección 6 de este documento. | **Aprobado** — Formalizado en BR-05, `specs/api.md` y `specs/acceptance-criteria.md` |
 
 ---
 
