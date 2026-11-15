@@ -24,13 +24,18 @@
    * Restricción de hora no exacta (ej. 17:30 rechazada con HTTP 400).
    * Restricción de tiempo pasado (rechazada con HTTP 400).
    * Límite de 30 días de anticipación (31 días rechazada con HTTP 400; 30 días aceptada con HTTP 201).
+   * Grilla de disponibilidad (Característica 4): fecha pasada → 400 `PAST_DATE_TIME`, más de 30 días → 400 `MAX_ADVANCE_EXCEEDED`, horas ya transcurridas de hoy → `PASADO`.
 4. **Pruebas de Cancelación y Restricción de 2 Horas:**
    * Archivo objetivo: `tests/integration/cancellation.test.ts`.
    * Cancelación oportuna ($\ge 2$ h) con HTTP 200 y liberación de slot.
    * Cancelación tardía ($< 2$ h) con HTTP 400 (`LATE_CANCELLATION`).
+   * Cancelar una reserva ya `CANCELADA` o `COMPLETADA` con HTTP 409 (`INVALID_STATE_TRANSITION`), aunque falten menos de 2 horas (orden 404 → 409 → 400).
+   * Código de reserva inexistente o mal formado (ej. `abc`) con HTTP 404 (`BOOKING_NOT_FOUND`) al consultar y al cancelar.
 5. **Pruebas de Validación de Formato de Entrada:**
    * Validación de campos faltantes, email inválido y teléfono (mínimo 7 y máximo 15 dígitos numéricos) retornando HTTP 422.
-6. **Pruebas de Criterios de Aceptación:**
+6. **Pruebas de Protección contra Adivinación de Códigos:**
+   * Exceder el límite de intentos de consulta o cancelación por IP retorna HTTP 429 (`RATE_LIMITED`).
+7. **Pruebas de Criterios de Aceptación:**
    * Verificación automatizada de los escenarios definidos en `specs/acceptance-criteria.md`.
 
 ## 2. Herramientas y Convenciones de Testing (TypeScript)

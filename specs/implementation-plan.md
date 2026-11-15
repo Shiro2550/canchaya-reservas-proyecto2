@@ -49,7 +49,7 @@
       AND (:start_time < end_time AND :end_time > start_time)
     ```
 * [ ] **TASK-14:** Implementación de endpoints de consulta por `booking_id` y cancelación autónoma (con validación de 2 horas previas).
-* [ ] **TASK-15:** Interfaz de usuario ligera (Frontend Web HTML/Tailwind/React/Vue o plantilla SSR) para flujo completo sin login.
+* [ ] **TASK-15:** Interfaz de usuario en React + Vite + Tailwind CSS + shadcn/ui (ADR-008) para el flujo completo sin login.
 
 ---
 

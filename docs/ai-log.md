@@ -169,4 +169,18 @@
 
 ---
 
+### Entrada 12: Revisión de Consistencia con los Outcomes ODD y Ajustes de Documentación (Issue #25)
+* **Fecha:** 2026-11-15
+* **Responsable:** Estudiante 2 — Architecture / Development Lead (David)
+* **Actividad:** Auditoría de `main` tras los PR #23 y #24: cruce de los 5 outcomes ODD con requisitos, reglas, modelo de datos, API y criterios de aceptación; búsqueda de contradicciones entre documentos (estados, días de anticipación, endpoints, códigos de error, teléfono, archivos de prueba).
+* **IA Utilizada:** Claude Code (aplicación de escritorio) — Claude Opus 5.5, usando GitHub CLI (`gh`).
+* **Solicitud (Prompt):**
+  > *"Revisa antes de avanzar si todo está bien y si las aprobaciones concuerdan con todas las especificaciones y los ODD, o si hay algo fuera de lugar."* Luego: *"Varios trabajos por issue, actualiza y vamos al código."*
+* **Resultado Obtenido:**
+  Los 5 outcomes quedan cubiertos y las reglas técnicas coinciden entre documentos. Se detectaron 10 detalles: los PR #23 y #24 se fusionaron sin revisión registrada en GitHub; el milestone 2 seguía abierto; `outcomes.md` mencionaba envío por correo; `data-model.md` citaba un endpoint inexistente; RNF-02 y TASK-15 no reflejaban el stack; a `testing.md` le faltaban los casos nuevos; el README estaba desactualizado; OC-02 y OC-04 no tienen forma de medirse en el sistema; y la constitución de Spec-Kit seguía vacía.
+* **Decisión Tomada:**
+  Corregir en el issue #25 los puntos de documentación (outcomes, data-model, api, RNF-02, TASK-15, testing, README). Dejar al Product Lead la validación de OC-02/OC-04 y la constitución, y pedir revisión formal en GitHub para los próximos PR.
+
+---
+
 *(Nuevas entradas se añadirán conforme los Estudiantes 2 y 3 avancen en arquitectura, implementación y testing, o cuando se aplique el cambio inesperado de requerimiento).*
