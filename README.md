@@ -146,7 +146,7 @@ Hay dos formas. Si solo quieres **probar la aplicación**, usa la opción A: no 
 | `docker compose down` | Apagar y quitar los contenedores (las reservas se conservan) |
 | `docker compose down -v` | Apagar y **borrar también la base de datos** |
 
-**¿Puerto ocupado?** Si ya tienes MySQL instalado (puerto 3306) o algo usa el 8080, cambia los puertos:
+**¿Puerto ocupado?** Si ya tienes MySQL instalado (puerto 3306) o algo usa el 8080, cambia los puertos al levantar (o guárdalos como `MYSQL_PORT` / `APP_PORT` en un archivo `.env`):
 
 ```bash
 MYSQL_PORT=3307 APP_PORT=8081 docker compose up -d --build
@@ -167,7 +167,8 @@ $env:MYSQL_PORT=3307; $env:APP_PORT=8081; docker compose up -d --build
    ```
    En Windows (PowerShell): `Copy-Item .env.example .env`
 3. **Prepara MySQL 8.4** (elige una):
-   * **Con Docker, solo la base de datos:** `docker compose up -d mysql`. Ya crea las bases `canchaya`, `canchaya_shadow` y `canchaya_test` y el usuario `canchaya`. Si usaste `MYSQL_PORT=3307`, cambia `3306` por `3307` en las tres URL de `.env`.
+   * **Con Docker, solo la base de datos:** `docker compose up -d mysql`. Crea las bases `canchaya`, `canchaya_shadow` y `canchaya_test` y el usuario `canchaya`.
+     Si **ya tienes MySQL instalado** (puerto 3306 ocupado), antes edita `.env`: pon `MYSQL_PORT=3307` y cambia `3306` por `3307` en las tres URL. Docker Compose lee ese mismo archivo, así que el puerto queda guardado.
    * **Con MySQL instalado:** entra como root (`mysql -u root -p`) y ejecuta:
      ```sql
      CREATE DATABASE canchaya; CREATE DATABASE canchaya_shadow; CREATE DATABASE canchaya_test;
