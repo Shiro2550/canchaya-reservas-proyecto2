@@ -89,12 +89,28 @@ Para cumplir con la sección 13 de la rúbrica del proyecto (*"Introducir un cam
 
 ---
 
-## 6. Próximos Pasos (Paso de Testigo a Estudiante 2 y 3)
+## 6. Stack Tecnológico (ADR-008)
 
-* **Estudiante 2 (David):**
-  1. Revisar `specs/requirements.md` y `specs/business-rules.md`.
-  2. Completar `specs/architecture.md`, `specs/data-model.md` y `specs/api.md`.
-  3. Implementar el backend y frontend en `src/`.
-* **Estudiante 3 (QA):**
-  1. Diseñar el plan en `docs/testing.md`.
-  2. Implementar la prueba prioritaria de anticolisión en `tests/integration/conflict.test.ts`.
+| Capa | Tecnología |
+| :--- | :--- |
+| Lenguaje | TypeScript (backend y frontend) |
+| API | Fastify + Zod |
+| Base de datos | MySQL 8.4 con Prisma (migraciones y datos semilla) |
+| Frontend | React + Vite + Tailwind CSS + shadcn/ui |
+| Pruebas | Vitest + Supertest |
+
+Detalle en `specs/architecture.md`, `specs/data-model.md` y `specs/api.md`. Las instrucciones para ejecutar el proyecto se agregarán al completar el andamiaje (TASK-10).
+
+---
+
+## 7. Estado y Próximos Pasos
+
+| Milestone | Estado |
+| :--- | :--- |
+| 1. Corrección de Inconsistencias de Specs | ✅ Completado |
+| 2. Arquitectura y Diseño Técnico | ✅ Completado (PR #23 y #24) |
+| 3. Implementación Core | 🔄 Siguiente — Dev Lead (David) |
+| 4. Pruebas Automatizadas y CI | ⏳ En paralelo con el 3 — QA Lead |
+| 5. Cambio de Requerimiento: Buffer 15 min | ⏳ Tras la primera versión funcional — todo el equipo |
+
+**Flujo de trabajo:** cada trabajo se registra como issue en su milestone, se desarrolla en una rama con el número del issue (`feature/<n>-<nombre>`) y se integra con un Pull Request que cierra ese issue. Cada paso con IA se documenta en `docs/ai-log.md`.

@@ -80,7 +80,7 @@
 | ID | Categoría | Requisito No Funcional |
 | :--- | :--- | :--- |
 | **RNF-01** | **Concurrencia e Integridad Transaccional** | El motor de base de datos y la capa de servicios deben garantizar aislamiento de transacciones (o bloqueo optimista/pesimista) para que dos solicitudes concurrentes para el mismo slot no resulten en doble inserción. |
-| **RNF-02** | **Simplicidad de Arquitectura** | La persistencia debe resolverse con una base de datos relacional ligera (ej. SQLite / PostgreSQL) sin dependencias pesadas ni servidores externos complejos, facilitando despliegue local o en contenedor. |
+| **RNF-02** | **Simplicidad de Arquitectura** | La persistencia debe resolverse con una base de datos relacional sin dependencias pesadas ni servidores externos complejos, facilitando despliegue local o en contenedor. Decisión adoptada: MySQL 8.4 ejecutado localmente o con Docker Compose (ADR-008). |
 | **RNF-03** | **Tiempo de Respuesta** | La consulta de disponibilidad y la creación de reserva deben ejecutarse en menos de 200 milisegundos en condiciones normales de red. |
 | **RNF-04** | **Compatibilidad y Portabilidad** | El sistema debe ser desacoplado; backend API RESTful y frontend web responsivo apto para navegadores móviles y desktop. |
 | **RNF-05** | **Testabilidad (Testability)** | Toda la lógica de negocio y validación de colisiones debe ser testeable de manera automatizada mediante pruebas unitarias y de integración sin necesidad de interfaz gráfica. |

@@ -16,7 +16,14 @@
 
 ### `GET /api/v1/courts`
 * **Descripción:** Retorna el catálogo de canchas disponibles.
-* **Respuesta 200 OK:** Lista de canchas activas con ID, nombre, deporte y tarifa.
+* **Respuesta 200 OK:** Lista de canchas activas con ID, nombre, deporte y tarifa. El filtro por deporte (US-01) se hace en el frontend.
+  ```json
+  [
+    { "id": "C1", "name": "Cancha 1 - Fútbol 7 Sintético", "sport": "FUTBOL_7", "hourly_rate": "60.00" },
+    { "id": "C2", "name": "Cancha 2 - Pádel", "sport": "PADEL", "hourly_rate": "30.00" }
+  ]
+  ```
+  Valores de `sport`: `FUTBOL_7`, `PADEL`, `TENIS`, `BASQUETBOL`. `hourly_rate` se envía como texto decimal para no perder precisión.
 
 ### `GET /api/v1/courts/{id}/availability?date=YYYY-MM-DD`
 * **Descripción:** Retorna la grilla de slots discretos de 60 min (08:00 a 23:00 en zona horaria America/Panama) para una fecha dada, indicando el estado de cada horario: `DISPONIBLE`, `OCUPADO` o `PASADO` (horas del día actual que ya transcurrieron).

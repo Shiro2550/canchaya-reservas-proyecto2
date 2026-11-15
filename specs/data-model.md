@@ -79,7 +79,7 @@ erDiagram
 
 | Columna | Tipo | Restricciones | Regla / Origen |
 | :--- | :--- | :--- | :--- |
-| `id` | `VARCHAR(10)` | PK | Código legible (`C1`). Usado en `GET /courts/{id}` y en los escenarios. |
+| `id` | `VARCHAR(10)` | PK | Código legible (`C1`). Usado en `GET /api/v1/courts/{id}/availability`, en `POST /api/v1/bookings` y en los escenarios. |
 | `name` | `VARCHAR(80)` | NOT NULL | Nombre público (RF-01). |
 | `sport` | `ENUM('FUTBOL_7','PADEL','TENIS','BASQUETBOL')` | NOT NULL | Deportes de RF-01. |
 | `hourly_rate` | `DECIMAL(10,2)` | NOT NULL, `CHECK (hourly_rate > 0)` | Tarifa por hora (RF-01). |
