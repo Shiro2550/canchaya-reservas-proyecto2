@@ -282,7 +282,7 @@ hayConflicto(nueva, existente, bufferMinutos = 0): boolean
 **Implementación:** React Router (rutas), TanStack Query (caché y refresco de datos), react-hook-form + Zod (formularios), componentes propios al estilo shadcn/ui sobre Radix (`src/frontend/src/components/ui`), Motion (animaciones) y Sonner (avisos). Las respuestas de la API se validan en el cliente con los esquemas de `@canchaya/shared`.
 
 * En desarrollo, Vite redirige `/api` al backend (*proxy*), sin configurar CORS.
-* En producción (previsto, aún no implementado), Fastify servirá los archivos compilados del frontend: un solo proceso que desplegar, manteniendo el desacoplamiento porque la SPA solo se comunica por la API REST (RNF-04).
+* En producción (imagen Docker), Fastify sirve los archivos compilados del frontend (`WEB_DIST_DIR`) y responde `index.html` en las rutas de la SPA: un solo proceso que desplegar, manteniendo el desacoplamiento porque la SPA solo se comunica por la API REST (RNF-04).
 
 ---
 
@@ -346,6 +346,8 @@ npm run dev                     # API en http://127.0.0.1:3000 y web en http://l
 **Migraciones:** la migración inicial es SQL escrito a mano (copia del DDL de `specs/data-model.md`) porque Prisma no modela la columna generada `active_slot` ni los `CHECK`. `prisma migrate diff` entre el esquema y la base devuelve una migración vacía, lo que garantiza que las migraciones futuras no los revierten.
 
 **Base de datos compartida:** la base de datos vive en el servidor donde corre el backend, no en el dispositivo de cada cliente. Todos los navegadores consultan la misma API y, por tanto, la misma base de datos; por eso una reserva hecha por un cliente aparece inmediatamente como `OCUPADO` para los demás. En desarrollo, cada integrante usa su propia base local con datos semilla.
+
+**Contenedores (issue #34):** `Dockerfile` multi-etapa (Node 24 + OpenSSL; instala dependencias, genera Prisma y compila la web) y `docker-compose.yml` con `mysql` (8.4) y `app`. Al arrancar, `docker/entrypoint.sh` aplica las migraciones, carga las canchas (`SEED_ON_START`) e inicia la API en `0.0.0.0:3000`, publicada en `http://localhost:8080`. El contenedor de MySQL usa un socket con nombre propio para que el motor de migraciones de Prisma no termine en un MySQL instalado en el equipo. Pasos en el README, sección 7.
 
 **Integración continua:** el QA / DevOps Lead definirá el pipeline de GitHub Actions; la arquitectura asume un contenedor de servicio MySQL 8.4 para ejecutar las pruebas de integración.
 

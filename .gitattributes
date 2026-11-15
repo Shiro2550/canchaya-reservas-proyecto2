@@ -1,0 +1,5 @@
+# Los scripts que se ejecutan dentro de los contenedores Linux deben conservar finales de línea LF,
+# aunque se clone el repositorio en Windows (core.autocrlf=true).
+*.sh text eol=lf
+docker/** text eol=lf
+Dockerfile text eol=lf

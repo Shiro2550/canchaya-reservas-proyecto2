@@ -1,5 +1,6 @@
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from "fastify";
 import rateLimit from "@fastify/rate-limit";
+import fastifyStatic from "@fastify/static";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import {
@@ -40,6 +41,11 @@ export interface AppDependencies {
   codeRateLimit?: CodeRateLimit;
   /** Publica la documentación OpenAPI en /docs. */
   docs?: boolean;
+  /**
+   * Carpeta con la web compilada (`vite build`). Si se indica, la API también sirve la SPA
+   * y responde `index.html` a sus rutas (producción / contenedor Docker).
+   */
+  webDir?: string;
 }
 
 /**
@@ -53,6 +59,7 @@ export async function buildApp({
   logger = false,
   codeRateLimit = { max: 30, timeWindow: "1 minute" },
   docs = false,
+  webDir,
 }: AppDependencies): Promise<FastifyInstance> {
   const app = Fastify({ logger }).withTypeProvider<ZodTypeProvider>();
 
@@ -63,7 +70,11 @@ export async function buildApp({
   app.decorate("timeZone", timeZone);
   app.decorate("codeRateLimit", codeRateLimit);
 
-  registerErrorHandler(app);
+  registerErrorHandler(app, { spaFallback: Boolean(webDir) });
+
+  if (webDir) {
+    await app.register(fastifyStatic, { root: webDir, prefix: "/", wildcard: true });
+  }
 
   await app.register(rateLimit, {
     global: false,
