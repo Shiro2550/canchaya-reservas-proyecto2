@@ -183,4 +183,22 @@
 
 ---
 
+### Entrada 13: Andamiaje del Proyecto y Base de Datos (Milestone 3, Issue #27)
+* **Fecha:** 2026-11-15
+* **Responsable:** Estudiante 2 — Architecture / Development Lead (David)
+* **Actividad:** TASK-10: crear el monorepo ejecutable (shared, backend, frontend), el esquema de Prisma con la migración inicial sobre MySQL 8.4 y la infraestructura de pruebas. Antes se crearon los issues del milestone 3 agrupando trabajos: #27 (andamiaje), #28 (API core, TASK-11 a TASK-14) y #29 (interfaz React, TASK-15).
+* **IA Utilizada:** Claude Code (aplicación de escritorio) — Claude Opus 5.5, con npm, Prisma CLI, el cliente `mysql` y el navegador integrado.
+* **Solicitud (Prompt):**
+  > *"Varios trabajos por issue, actualiza y vamos al código, que es el milestone 3."*
+* **Resultado Obtenido:**
+  * Monorepo con npm workspaces y versiones fijadas: TypeScript 7.0.2, Fastify 5.12, Prisma 7.10.1 con el adaptador `mariadb`, Zod 4.6, React 19.3, Vite 8.3, Tailwind 4.3 y Vitest 5.1.
+  * Backend: `buildApp()` con reloj inyectable, validación de variables de entorno, manejador único de errores con el formato `{error:{code,message}}` y `GET /api/v1/health`. La sesión de MySQL se fija en UTC.
+  * Base de datos: migración inicial escrita a mano con el DDL de `data-model.md`. `prisma migrate diff` contra la base devuelve una migración vacía (el esquema de Prisma y la base coinciden) y el seed carga C1–C4.
+  * Pruebas: 21 pruebas en verde (unitarias y de integración contra `canchaya_test`). Comprueban que fecha y hora se guardan sin desplazamiento de zona horaria, que `created_at` queda en UTC, que el índice único bloquea la doble reserva (P2002), que un turno cancelado se libera y que el `CHECK` rechaza códigos inválidos.
+  * Verificación manual: `npm run dev` levanta la API y la web; la pantalla inicial muestra "API y base de datos disponibles" a través del proxy de Vite.
+* **Decisión Tomada:**
+  Ejecutar el backend con `tsx` en desarrollo y producción (sin compilar a JavaScript), porque Prisma 7 genera el cliente en TypeScript. Las pruebas usan una base exclusiva y se niegan a correr si apunta a la base de desarrollo. Los scripts de instalación de `esbuild`, `prisma` y `@prisma/engines` quedan aprobados en `package.json` (`allowScripts`, npm 11).
+
+---
+
 *(Nuevas entradas se añadirán conforme los Estudiantes 2 y 3 avancen en arquitectura, implementación y testing, o cuando se aplique el cambio inesperado de requerimiento).*

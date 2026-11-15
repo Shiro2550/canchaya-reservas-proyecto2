@@ -13,11 +13,11 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
-parts/
+/lib/
+/lib64/
+/parts/
 sdist/
-var/
+/var/
 wheels/
 *.egg-info/
 .installed.cfg
@@ -44,3 +44,12 @@ Thumbs.db
 # Gemini & Agent temp cache (preserve core specs)
 .gemini/tmp/
 .gemini/cache/
+
+# Node / TypeScript
+node_modules/
+coverage/
+*.tsbuildinfo
+.vite/
+
+# Prisma generated client
+src/backend/src/generated/

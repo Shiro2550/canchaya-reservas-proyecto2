@@ -34,7 +34,7 @@
 * [x] **TASK-07:** Selección del Stack Tecnológico (Backend, Framework, Base de Datos Ligera) documentado en `specs/architecture.md` y ADR-008.
 * [x] **TASK-08:** Diseño del Esquema de Datos Relacional (Tablas: `courts`, `bookings`, `booking_events`) en `specs/data-model.md`.
 * [x] **TASK-09:** Especificación OpenAPI / REST Contract (`GET /courts`, `GET /courts/{id}/availability`, `POST /bookings`, `GET /bookings/{id}`, `POST /bookings/{id}/cancel`) en `specs/api.md`.
-* [ ] **TASK-10:** Andamiaje del proyecto en la carpeta `src/`.
+* [x] **TASK-10:** Andamiaje del proyecto en la carpeta `src/` (monorepo, API Fastify, Prisma + MySQL 8.4, React + Vite, pruebas con Vitest).
 
 ---
 

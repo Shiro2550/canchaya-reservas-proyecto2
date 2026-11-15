@@ -306,27 +306,42 @@ hayConflicto(nueva, existente, bufferMinutos = 0): boolean
 
 ## 13. Decisiones de Despliegue y Ejecución Local
 
-> Los comandos estarán disponibles al completar el andamiaje del proyecto (TASK-10).
+**Requisitos previos:** Node.js ≥ 24 y npm ≥ 11. MySQL 8.4 instalado localmente **o** Docker (`docker-compose.yml` levanta MySQL 8.4 con las tres bases ya creadas).
 
-**Requisitos previos:** Node.js ≥ 24, npm, Docker (para MySQL). Opcional: MySQL 8.4 instalado localmente en lugar de Docker.
-
-**Variables de entorno (`.env`, a partir de `.env.example`):**
+**Variables de entorno (`.env`, a partir de `.env.example`; nunca se sube al repositorio):**
 
 | Variable | Ejemplo | Uso |
 | :--- | :--- | :--- |
-| `DATABASE_URL` | `mysql://canchaya:canchaya@localhost:3306/canchaya` | Conexión de Prisma |
-| `PORT` | `3000` | Puerto del backend |
+| `DATABASE_URL` | `mysql://canchaya:canchaya@localhost:3306/canchaya` | Base de desarrollo (Prisma y API) |
+| `SHADOW_DATABASE_URL` | `mysql://canchaya:canchaya@localhost:3306/canchaya_shadow` | Base temporal de `prisma migrate dev` |
+| `TEST_DATABASE_URL` | `mysql://canchaya:canchaya@localhost:3306/canchaya_test` | Base exclusiva de las pruebas; se vacía en cada ejecución |
+| `PORT` / `HOST` | `3000` / `127.0.0.1` | Dirección del backend |
+| `LOG_LEVEL` | `info` | Nivel de logs (pino) |
 | `TZ_COMPLEX` | `America/Panama` | Zona horaria del complejo |
 
-**Pasos previstos:**
+**Primera ejecución:**
 ```bash
-docker compose up -d            # Levanta MySQL 8.4
-npm install                     # Instala dependencias de todos los workspaces
-npm run db:migrate              # Aplica migraciones de Prisma
-npm run db:seed                 # Carga las canchas iniciales
-npm run dev                     # Backend + frontend en modo desarrollo
-npm test                        # Ejecuta las pruebas
+cp .env.example .env            # Variables de desarrollo
+docker compose up -d            # Solo si no tienes MySQL 8.4 local
+npm install                     # Dependencias de todos los workspaces + genera el cliente de Prisma
+npm run db:deploy               # Aplica las migraciones a la base de desarrollo
+npm run db:seed                 # Carga las canchas C1–C4
+npm run dev                     # API en http://127.0.0.1:3000 y web en http://localhost:5173
 ```
+
+**Comandos del día a día:**
+
+| Comando | Qué hace |
+| :--- | :--- |
+| `npm test` | Pruebas unitarias e integración (aplica migraciones a `canchaya_test` antes de empezar) |
+| `npm run typecheck` | Verifica tipos en `shared`, `backend` y `frontend` |
+| `npm run build` | Verifica tipos y compila el frontend |
+| `npm run db:migrate` | Crea una migración nueva tras cambiar `schema.prisma` |
+| `npm run db:reset` | Borra y recrea la base de desarrollo |
+
+**Conexión en UTC:** el cliente de Prisma fija la sesión de MySQL en `+00:00`, por lo que `created_at` y la auditoría se guardan en UTC aunque el servidor esté en otra zona horaria. Las fechas y horas del turno (`DATE`/`TIME`) se guardan tal cual, en hora de Panamá.
+
+**Migraciones:** la migración inicial es SQL escrito a mano (copia del DDL de `specs/data-model.md`) porque Prisma no modela la columna generada `active_slot` ni los `CHECK`. `prisma migrate diff` entre el esquema y la base devuelve una migración vacía, lo que garantiza que las migraciones futuras no los revierten.
 
 **Base de datos compartida:** la base de datos vive en el servidor donde corre el backend, no en el dispositivo de cada cliente. Todos los navegadores consultan la misma API y, por tanto, la misma base de datos; por eso una reserva hecha por un cliente aparece inmediatamente como `OCUPADO` para los demás. En desarrollo, cada integrante usa su propia base local con datos semilla.
 

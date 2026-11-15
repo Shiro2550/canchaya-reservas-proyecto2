@@ -1,0 +1,16 @@
+{
+  "name": "@canchaya/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Constantes del dominio, códigos de error y esquemas Zod compartidos entre backend y frontend",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  }
+}

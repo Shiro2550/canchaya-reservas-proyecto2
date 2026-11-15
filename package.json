@@ -1,0 +1,39 @@
+{
+  "name": "canchaya",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CanchaYa — sistema de reservas de canchas deportivas sin login (Proyecto #2, Tópicos Especiales II)",
+  "type": "module",
+  "workspaces": [
+    "src/shared",
+    "src/backend",
+    "src/frontend"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c cyan,magenta \"npm run dev -w @canchaya/backend\" \"npm run dev -w @canchaya/frontend\"",
+    "dev:api": "npm run dev -w @canchaya/backend",
+    "dev:web": "npm run dev -w @canchaya/frontend",
+    "build": "npm run typecheck && npm run build -w @canchaya/frontend",
+    "db:migrate": "npm run db:migrate -w @canchaya/backend",
+    "db:deploy": "npm run db:deploy -w @canchaya/backend",
+    "db:seed": "npm run db:seed -w @canchaya/backend",
+    "db:reset": "npm run db:reset -w @canchaya/backend",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "concurrently": "^10.0.7",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "prisma@7.10.1": true,
+    "@prisma/engines@7.10.1": true
+  }
+}
