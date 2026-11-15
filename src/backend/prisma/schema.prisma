@@ -1,0 +1,81 @@
+// Esquema de CanchaYa — fuente: specs/data-model.md
+// La columna generada `active_slot`, los CHECK y el charset ASCII de `booking_code`
+// no se pueden expresar en Prisma: están en la migración SQL inicial (migrations/*_init).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum Sport {
+  FUTBOL_7
+  PADEL
+  TENIS
+  BASQUETBOL
+}
+
+enum BookingStatus {
+  CONFIRMADA
+  CANCELADA
+  COMPLETADA
+}
+
+enum BookingEventType {
+  CREATED
+  CANCELLED
+}
+
+model Court {
+  id         String    @id @db.VarChar(10)
+  name       String    @db.VarChar(80)
+  sport      Sport
+  hourlyRate Decimal   @map("hourly_rate") @db.Decimal(10, 2)
+  isActive   Boolean   @default(true) @map("is_active")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  bookings   Booking[]
+
+  @@map("courts")
+}
+
+model Booking {
+  id            BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  /// Código público `CY-XXXXXXXX`; en la API se expone como `booking_id`.
+  bookingCode   String         @unique(map: "uq_bookings_code") @map("booking_code") @db.Char(11)
+  courtId       String         @map("court_id") @db.VarChar(10)
+  /// Fecha del turno en hora de Panamá (se lee como medianoche UTC de ese día).
+  bookingDate   DateTime       @map("booking_date") @db.Date
+  /// Hora local de Panamá (se lee como 1970-01-01THH:MM:00Z).
+  startTime     DateTime       @map("start_time") @db.Time(0)
+  endTime       DateTime       @map("end_time") @db.Time(0)
+  customerName  String         @map("customer_name") @db.VarChar(80)
+  customerPhone String         @map("customer_phone") @db.VarChar(25)
+  customerEmail String         @map("customer_email") @db.VarChar(254)
+  status        BookingStatus  @default(CONFIRMADA)
+  /// Columna GENERADA por MySQL (1 si CONFIRMADA, NULL si no). Nunca escribirla desde la aplicación.
+  activeSlot    Int?           @map("active_slot") @db.TinyInt
+  createdAt     DateTime       @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at") @db.DateTime(3)
+  cancelledAt   DateTime?      @map("cancelled_at") @db.DateTime(3)
+  court         Court          @relation(fields: [courtId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "fk_bookings_court")
+  events        BookingEvent[]
+
+  @@unique([courtId, bookingDate, startTime, activeSlot], map: "uq_bookings_active_slot")
+  @@index([courtId, bookingDate, status], map: "idx_bookings_court_date_status")
+  @@map("bookings")
+}
+
+model BookingEvent {
+  id         BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  bookingId  BigInt           @map("booking_id") @db.UnsignedBigInt
+  eventType  BookingEventType @map("event_type")
+  occurredAt DateTime         @default(now()) @map("occurred_at") @db.DateTime(3)
+  details    Json?
+  booking    Booking          @relation(fields: [bookingId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_booking_events_booking")
+
+  @@index([bookingId, occurredAt], map: "idx_booking_events_booking")
+  @@map("booking_events")
+}

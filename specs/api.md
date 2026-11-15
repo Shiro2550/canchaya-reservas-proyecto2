@@ -118,7 +118,9 @@ Todas las respuestas de error (4xx y 5xx) siguen la estructura homogénea:
 | **400** | `LATE_CANCELLATION` | Intento de cancelación con menos de 2 horas de anticipación. |
 | **404** | `COURT_NOT_FOUND` | El ID de cancha no existe o está inactiva. |
 | **404** | `BOOKING_NOT_FOUND` | El `booking_id` no existe en el sistema o no tiene el formato válido. |
+| **404** | `ROUTE_NOT_FOUND` | La ruta solicitada no existe en la API (error técnico). |
 | **409** | `BOOKING_CONFLICT` | Solapamiento con otra reserva confirmada en la misma cancha (BR-01). |
 | **409** | `INVALID_STATE_TRANSITION`| Intento de cancelar una reserva ya cancelada o completada. |
 | **422** | `VALIDATION_ERROR` | Falla en esquema de entrada (email inválido, nombre < 3 chars, teléfono no cumple 7-15 dígitos). |
 | **429** | `RATE_LIMITED` | Demasiados intentos de consulta o cancelación por código desde la misma IP (protección contra adivinación de códigos, ADR-002). |
+| **500** | `INTERNAL_ERROR` | Error inesperado del servidor; el detalle solo queda en los logs. |
