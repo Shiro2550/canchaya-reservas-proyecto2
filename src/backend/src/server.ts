@@ -6,6 +6,8 @@ const env = loadEnv();
 const prisma = createPrismaClient(env.DATABASE_URL);
 const app = await buildApp({
   prisma,
+  timeZone: env.TZ_COMPLEX,
+  docs: true,
   logger: { level: env.LOG_LEVEL, timestamp: () => `,"time":"${new Date().toISOString()}"` },
 });
 

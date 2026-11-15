@@ -19,7 +19,12 @@ export function registerErrorHandler(app: FastifyInstance): void {
 
     // Fase 1 del orden de validación: esquema y formato → 422.
     if (hasZodFastifySchemaValidationErrors(error) || error.validation) {
-      const detail = error.validation?.map((v) => `${v.instancePath || "body"} ${v.message ?? ""}`.trim()).join("; ");
+      const detail = error.validation
+        ?.map((v) => {
+          const field = v.instancePath.replace(/^\//, "").replaceAll("/", ".");
+          return field ? `${field}: ${v.message ?? "valor inválido"}` : (v.message ?? "valor inválido");
+        })
+        .join("; ");
       return reply
         .status(422)
         .send(body("VALIDATION_ERROR", detail ? `Datos de entrada inválidos: ${detail}` : "Datos de entrada inválidos."));
