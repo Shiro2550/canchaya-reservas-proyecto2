@@ -3,12 +3,14 @@
 **Proyecto:** Sistema de Reservas Especializado de Canchas Deportivas (`CanchaYa`)  
 **Curso:** Tópicos Especiales II — Prof. Regis Rivera  
 **Rol Responsable:** Estudiante 2 — Architecture / Development Lead (David)  
-**Estado:** Contrato REST preliminar derivado de los Requisitos Funcionales  
+**Versión:** 1.1.0  
+**Fecha:** 2026-11-15  
+**Estado:** En revisión (issue #21)  
 
 ---
 
 > [!NOTE]  
-> Este documento debe ser completado y ajustado por el **Estudiante 2 (Architecture / Development Lead)**. Define los endpoints necesarios para cumplir los casos de uso descritos en `specs/requirements.md`.
+> Contrato REST de la v1. Define los endpoints que cumplen los casos de uso de `specs/requirements.md` con las reglas de `specs/business-rules.md`. La correspondencia entre campos de la API y columnas de la base de datos está en `specs/data-model.md` (sección 6). Todas las rutas tienen el prefijo `/api/v1` y usan JSON.
 
 ## 1. Endpoints de Canchas y Disponibilidad
 
@@ -26,6 +28,8 @@
     { "start_time": "18:00", "end_time": "19:00", "status": "OCUPADO", "available": false }
   ]
   ```
+* **Respuesta 404 Not Found:** La cancha no existe o está inactiva (`COURT_NOT_FOUND`).
+* **Respuesta 422 Unprocessable Entity:** El parámetro `date` falta o no tiene el formato `YYYY-MM-DD` (`VALIDATION_ERROR`).
 
 ---
 
@@ -66,14 +70,18 @@
 ### `GET /api/v1/bookings/{booking_id}`
 * **Descripción:** Consulta el estado y detalle de una reserva mediante su código localizador. Si la reserva estaba `CONFIRMADA` pero su hora de fin ya pasó en hora de Panamá, se retorna como `COMPLETADA` mediante evaluación perezosa.
 * **Respuesta 200 OK:** Datos de la reserva y estado (`CONFIRMADA`, `CANCELADA` o `COMPLETADA`).
-* **Respuesta 404 Not Found:** Código inexistente.
+* **Respuesta 404 Not Found:** Código inexistente (`BOOKING_NOT_FOUND`).
+* **Respuesta 429 Too Many Requests:** Demasiados intentos de consulta desde la misma IP (`RATE_LIMITED`).
 
-### `DELETE /api/v1/bookings/{booking_id}` (o `POST /api/v1/bookings/{booking_id}/cancel`)
-* **Descripción:** Solicita la cancelación de la reserva aplicando la regla BR-05 (anticipación $\ge$ 2 horas respecto a `start_time` en hora local de Panamá).
-* **Respuesta 200 OK:** Reserva cancelada con éxito; retorna estado `CANCELADA` y libera el slot inmediatamente.
+### `POST /api/v1/bookings/{booking_id}/cancel`
+* **Descripción:** Solicita la cancelación de la reserva aplicando la regla BR-05 (anticipación $\ge$ 2 horas respecto a `start_time` en hora local de Panamá). No requiere cuerpo.
+* **Por qué `POST .../cancel` y no `DELETE`:** cancelar no elimina la reserva; cambia su estado a `CANCELADA` y la conserva para consulta y auditoría. `DELETE` daría a entender que el recurso desaparece.
+* **Respuesta 200 OK:** Reserva cancelada con éxito; retorna la reserva con estado `CANCELADA` y el slot queda libre inmediatamente.
 * **Respuesta 400 Bad Request:** Cancelación tardía rechazada (`LATE_CANCELLATION`, anticipación menor a 2 horas).
-* **Respuesta 404 Not Found:** Reserva inexistente.
-* **Respuesta 409 Conflict:** Intento de cancelar una reserva ya `CANCELADA` o `COMPLETADA`.
+* **Respuesta 404 Not Found:** Reserva inexistente (`BOOKING_NOT_FOUND`).
+* **Respuesta 409 Conflict:** Intento de cancelar una reserva ya `CANCELADA` o `COMPLETADA` (`INVALID_STATE_TRANSITION`).
+* **Respuesta 429 Too Many Requests:** Demasiados intentos desde la misma IP (`RATE_LIMITED`).
+* **Orden de validación:** 404 → 409 → 400 (propuesto al Product Lead en el issue #22).
 
 ---
 
@@ -104,3 +112,4 @@ Todas las respuestas de error (4xx y 5xx) siguen la estructura homogénea:
 | **409** | `BOOKING_CONFLICT` | Solapamiento con otra reserva confirmada en la misma cancha (BR-01). |
 | **409** | `INVALID_STATE_TRANSITION`| Intento de cancelar una reserva ya cancelada o completada. |
 | **422** | `VALIDATION_ERROR` | Falla en esquema de entrada (email inválido, nombre < 3 chars, teléfono no cumple 7-15 dígitos). |
+| **429** | `RATE_LIMITED` | Demasiados intentos de consulta o cancelación por código desde la misma IP (protección contra adivinación de códigos, ADR-002). |

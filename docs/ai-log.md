@@ -79,4 +79,77 @@
 
 ---
 
+### Entrada 06: Revisión de Especificaciones y Propuesta de Stack Tecnológico
+* **Fecha:** 2026-11-11
+* **Responsable:** Estudiante 2 — Architecture / Development Lead (David)
+* **Actividad:** Lectura completa del repositorio (README, `specs/`, `docs/`, configuración de Spec-Kit y `DSaIA-Proyecto2.pdf`) para entender el estado del proyecto, detectar inconsistencias entre especificaciones y elegir el stack.
+* **IA Utilizada:** Claude Code (aplicación de escritorio) — Claude Opus 5.5.
+* **Solicitud (Prompt):**
+  > *"Revisa el README y las especificaciones del proyecto (Spec-Kit / SDD), dime qué vamos a hacer según los requisitos y la arquitectura, y propónme un stack si no está definido. No hagas ningún cambio, solo lee, no asumas y pregúntame si no entiendes."*
+* **Resultado Obtenido:**
+  Resumen del estado por rol, 15 inconsistencias detectadas en las especificaciones (estados, códigos HTTP, `end_time`, formato del `booking_id`, zona horaria, alcance del administrador, entre otras) y comparación de stacks. Se descartó Python (dos lenguajes junto a React) y SQLite (una sola escritura simultánea), explicando además que la base de datos vive en el servidor y no en el dispositivo de cada cliente.
+* **Decisión Tomada:**
+  Adoptar **TypeScript en todo el proyecto**: Fastify + Zod + Prisma + **MySQL 8.4** en el backend y **React + Vite + Tailwind + shadcn/ui** en el frontend. El módulo de administrador queda fuera de la v1.
+
+---
+
+### Entrada 07: Especificación de la Arquitectura de Software
+* **Fecha:** 2026-11-11
+* **Responsable:** Estudiante 2 — Architecture / Development Lead (David)
+* **Actividad:** Redacción de `specs/architecture.md` (TASK-07) en la rama `feature/architecture-dev-lead`.
+* **IA Utilizada:** Claude Code (aplicación de escritorio) — Claude Opus 5.5.
+* **Solicitud (Prompt):**
+  > *"Confirmo TypeScript + React + MySQL como stack para empezar architecture.md."*
+* **Resultado Obtenido:**
+  Documento con stack y versiones verificadas en npm, diagrama de capas (presentación → servicios → dominio → persistencia), estructura de `src/` y `tests/`, diagrama de secuencia de creación de reserva, mecanismo anticolisión con dos barreras (bloqueo `SELECT ... FOR UPDATE` de la cancha y un índice único sobre reservas confirmadas), orden de validación, manejo del tiempo con reloj inyectable, seguridad del `booking_id`, preparación para el buffer de 15 minutos y pasos de ejecución local.
+* **Decisión Tomada:**
+  Marcar como `[PENDIENTE PL]` todo lo que dependía del Product Lead y no implementar nada hasta resolver las inconsistencias. Commit `c4e7920` subido a la rama sin abrir PR, porque el issue #2 aún requería `data-model.md` y `api.md`.
+
+---
+
+### Entrada 08: Registro de Inconsistencias como Issues y Organización en Milestones
+* **Fecha:** 2026-11-11
+* **Responsable:** Estudiante 2 — Architecture / Development Lead (David)
+* **Actividad:** Publicación de las inconsistencias detectadas como issues de GitHub y creación de milestones reales para ordenar el backlog del equipo.
+* **IA Utilizada:** Claude Code (aplicación de escritorio) — Claude Opus 5.5, usando GitHub CLI (`gh`).
+* **Solicitud (Prompt):**
+  > *"Prepárame una lista de cómo arreglamos esas inconsistencias (como issues en GitHub)."* y luego: *"Créalos y acomoda los milestones; el #14 va en el mío."*
+* **Resultado Obtenido:**
+  15 issues (#6 a #20), cada uno con problema, propuesta y archivos afectados. 5 milestones: *Corrección de Inconsistencias de Specs*, *Arquitectura y Diseño Técnico* (#2, #14), *Implementación Core* (#3), *Pruebas Automatizadas y CI* (#4) y *Cambio de Requerimiento: Buffer 15 min* (#5, #16).
+* **Decisión Tomada:**
+  Cada PR debe cerrar un issue concreto y abrirse solo con el trabajo completo, para conservar la trazabilidad issue → PR → commit que exige la rúbrica. El #16 (convivencia del buffer con los turnos de hora exacta) se pospone al milestone del cambio de requerimiento.
+
+---
+
+### Entrada 09: Verificación de la Resolución de Inconsistencias (Milestone 1)
+* **Fecha:** 2026-11-15
+* **Responsable:** Estudiante 2 — Architecture / Development Lead (David)
+* **Actividad:** Revisión del commit `e58a2ec` del Product Lead y de los comentarios de cierre de los 13 issues del milestone 1, sin modificar archivos.
+* **IA Utilizada:** Claude Code (aplicación de escritorio) — Claude Opus 5.5.
+* **Solicitud (Prompt):**
+  > *"Ya cerraron todas las issues, dime qué se hizo y qué se solucionó, no edites nada, y partamos de ahí."*
+* **Resultado Obtenido:**
+  Confirmación de que las 13 inconsistencias se resolvieron (ADR-006 y ADR-007 incluidos) y detección de pendientes: códigos de error distintos entre `architecture.md` y `api.md`, marcas `[PENDIENTE PL]` restantes, `data-model.md` desactualizado, orden de validación al cancelar, ejemplos de `booking_id` fuera del alfabeto definido y endpoint de cancelación sin decidir.
+* **Decisión Tomada:**
+  Abrir una rama nueva para completar el milestone 2 (`data-model.md`, alineación de `architecture.md` y `api.md`, ADR del stack) y reportar al Product Lead los puntos que le corresponden.
+
+---
+
+### Entrada 10: Modelo de Datos, Alineación del Contrato API y ADR del Stack (Milestone 2)
+* **Fecha:** 2026-11-15
+* **Responsable:** Estudiante 2 — Architecture / Development Lead (David)
+* **Actividad:** Completar el diseño técnico del milestone 2 siguiendo el flujo issue → rama → PR: issue #21 (Dev Lead) e issue #22 (pendientes para el Product Lead), rama `feature/21-data-model-api`.
+* **IA Utilizada:** Claude Code (aplicación de escritorio) — Claude Opus 5.5, usando GitHub CLI (`gh`).
+* **Solicitud (Prompt):**
+  > *"Aplica las opciones recomendadas y conviértelo en una rama; siempre haz un issue y asígnalo a la milestone correspondiente; luego crea la PR a partir de ese issue con lo que se resolvió."*
+* **Resultado Obtenido:**
+  * `specs/data-model.md`: diagrama entidad-relación, tablas `courts`, `bookings` y `booking_events` (#14), índices, columna generada `active_slot`, restricciones `CHECK`, datos semilla y DDL de referencia para MySQL 8.4.
+  * `specs/architecture.md` (v1.1.0): códigos de error unificados con `api.md`, cancha inactiva → 404, orden de validación al cancelar, `429 RATE_LIMITED` y sin marcas `[PENDIENTE PL]`.
+  * `specs/api.md` (v1.1.0): cancelación con `POST /api/v1/bookings/{booking_id}/cancel`, `429 RATE_LIMITED` y respuestas de error de la disponibilidad.
+  * `docs/decisions.md`: ADR-008. `specs/implementation-plan.md`: TASK-07 a TASK-09 marcadas como completadas.
+* **Decisión Tomada:**
+  Opciones recomendadas por el Dev Lead: catálogo de errores de `api.md` como fuente única; `POST .../cancel` en lugar de `DELETE`; clave interna `BIGINT` separada de `booking_code`; `DATE` + `TIME` en hora de Panamá con marcas técnicas en UTC; `COMPLETADA` calculado al leer sin escribir en `GET`. El DDL no se ejecutó todavía contra MySQL; se validará al crear el esquema de Prisma (TASK-10).
+
+---
+
 *(Nuevas entradas se añadirán conforme los Estudiantes 2 y 3 avancen en arquitectura, implementación y testing, o cuando se aplique el cambio inesperado de requerimiento).*

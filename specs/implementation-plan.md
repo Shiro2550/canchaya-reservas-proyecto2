@@ -31,9 +31,9 @@
 ---
 
 ### Milestone 2: Arquitectura y Diseño Técnico (Para Estudiante 2 - David)
-* [ ] **TASK-07:** Selección del Stack Tecnológico (Backend, Framework, Base de Datos Ligera) documentado en `specs/architecture.md`.
-* [ ] **TASK-08:** Diseño del Esquema de Datos Relacional (Tablas: `courts`, `bookings`) en `specs/data-model.md`.
-* [ ] **TASK-09:** Especificación OpenAPI / REST Contract (`GET /courts`, `GET /courts/{id}/availability`, `POST /bookings`, `GET /bookings/{id}`, `DELETE /bookings/{id}`) en `specs/api.md`.
+* [x] **TASK-07:** Selección del Stack Tecnológico (Backend, Framework, Base de Datos Ligera) documentado en `specs/architecture.md` y ADR-008.
+* [x] **TASK-08:** Diseño del Esquema de Datos Relacional (Tablas: `courts`, `bookings`, `booking_events`) en `specs/data-model.md`.
+* [x] **TASK-09:** Especificación OpenAPI / REST Contract (`GET /courts`, `GET /courts/{id}/availability`, `POST /bookings`, `GET /bookings/{id}`, `POST /bookings/{id}/cancel`) en `specs/api.md`.
 * [ ] **TASK-10:** Andamiaje del proyecto en la carpeta `src/`.
 
 ---

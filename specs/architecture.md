@@ -3,9 +3,9 @@
 **Proyecto:** Sistema de Reservas Especializado de Canchas Deportivas (`CanchaYa`)  
 **Curso:** Tópicos Especiales II — Prof. Regis Rivera  
 **Rol Responsable:** Estudiante 2 — Architecture / Development Lead (David)  
-**Versión:** 1.0.0  
-**Fecha:** 2026-11-11  
-**Estado:** Aprobado y Consensuado por el Equipo (Product Lead, Dev Lead y QA Lead)  
+**Versión:** 1.1.0  
+**Fecha:** 2026-11-15  
+**Estado:** Aprobado y Consensuado por el Equipo (Product Lead, Dev Lead y QA Lead) — v1.1.0 en revisión (issue #21)  
 
 ---
 
@@ -126,7 +126,7 @@ flowchart TB
     └── e2e/                     # Opcional: flujos completos en navegador (Playwright)
 ```
 
-> La convención de nombres de pruebas (por ejemplo `tests/integration/conflict.test.ts`) la definirá el QA Lead en `docs/testing.md`, reemplazando las referencias previas a `test_conflict.py`.
+> La convención de nombres de pruebas está definida en `docs/testing.md` (por ejemplo `tests/integration/conflict.test.ts` y `tests/unit/collision.test.ts`).
 
 ---
 
@@ -148,11 +148,11 @@ sequenceDiagram
     SV->>DB: BEGIN (READ COMMITTED)
     SV->>DB: SELECT ... FROM courts WHERE id = ? FOR UPDATE
     Note over SV,DB: Las reservas de la misma cancha quedan en fila (una a la vez)
-    DB-->>SV: cancha (404 si no existe / 400 si inactiva)
+    DB-->>SV: cancha (404 si no existe o está inactiva)
     SV->>DB: SELECT reservas CONFIRMADAS que solapan (fórmula BR-01)
     alt Hay solapamiento
         SV->>DB: ROLLBACK
-        SV-->>API: SlotUnavailableError → 409
+        SV-->>API: BookingConflictError → 409
     else Slot libre
         SV->>DOM: generarBookingId()
         SV->>DB: INSERT booking + INSERT booking_event (CREATED)
@@ -194,54 +194,62 @@ La garantía se apoya en **dos barreras independientes**:
 
 ---
 
-## 6. Validación y Manejo de Errores — [PENDIENTE PL]
+## 6. Validación y Manejo de Errores
+
+Los códigos de error son los del catálogo de `specs/api.md` (sección 3), que es la fuente oficial del contrato. El orden de validación sigue `specs/business-rules.md` (sección 2).
 
 **Orden de validación al crear una reserva** (la primera regla que falla determina la respuesta):
 
 | Orden | Validación | Código HTTP | Código de error |
 | :---: | :--- | :---: | :--- |
-| 1 | Formato de datos (campos requeridos, email RFC, nombre 3–80, teléfono ≥ 7 dígitos) | `422` | `VALIDATION_ERROR` |
-| 2 | Reglas de horario BR-02 (08:00–23:00, inicio en hora exacta, no en el pasado, ≤ 30 días) | `400` | `OUT_OF_SCHEDULE`, `PAST_DATE`, `TOO_FAR_AHEAD`, `INVALID_SLOT` |
-| 3 | Cancha inexistente / inactiva | `404` / `400` | `COURT_NOT_FOUND`, `COURT_INACTIVE` |
-| 4 | Colisión BR-01 | `409` | `SLOT_UNAVAILABLE` |
+| 1 | Formato de datos (campos requeridos, email RFC 5322, nombre 3–80, teléfono 7–15 dígitos) | `422` | `VALIDATION_ERROR` |
+| 2 | Reglas de horario BR-02 (08:00–23:00, inicio en hora exacta, no en el pasado, ≤ 30 días) | `400` | `OUT_OF_OPERATING_HOURS`, `INVALID_TIME_SLOT`, `PAST_DATE_TIME`, `MAX_ADVANCE_EXCEEDED` |
+| 3 | Cancha inexistente o inactiva | `404` | `COURT_NOT_FOUND` |
+| 4 | Colisión BR-01 | `409` | `BOOKING_CONFLICT` |
 
-**Otros casos:**
+**Orden de validación al cancelar una reserva** (propuesto al Product Lead en el issue #22):
+
+| Orden | Validación | Código HTTP | Código de error |
+| :---: | :--- | :---: | :--- |
+| 1 | La reserva no existe | `404` | `BOOKING_NOT_FOUND` |
+| 2 | La reserva ya está `CANCELADA` o `COMPLETADA` (BR-04) | `409` | `INVALID_STATE_TRANSITION` |
+| 3 | Faltan menos de 2 horas para el inicio (BR-05) | `400` | `LATE_CANCELLATION` |
+
+**Protección transversal:**
 
 | Situación | Código HTTP | Código de error |
 | :--- | :---: | :--- |
-| Reserva no encontrada por `booking_id` | `404` | `BOOKING_NOT_FOUND` |
-| Cancelación con menos de 2 horas (BR-05) | `400` | `CANCELLATION_WINDOW_CLOSED` |
-| Cancelar una reserva ya `CANCELADA` o `COMPLETADA` (BR-04) | `409` | `BOOKING_NOT_CANCELLABLE` |
-| Exceso de intentos de consulta/cancelación | `429` | `RATE_LIMITED` |
+| Exceso de intentos de consulta o cancelación por código | `429` | `RATE_LIMITED` |
 
 **Formato único de error:**
 ```json
 {
   "error": {
-    "code": "SLOT_UNAVAILABLE",
+    "code": "BOOKING_CONFLICT",
     "message": "La cancha solicitada no está disponible en el horario seleccionado."
   }
 }
 ```
 
-Los mensajes (`message`) son los textos definidos en `specs/business-rules.md` y `specs/acceptance-criteria.md`.
+Los mensajes (`message`) son los textos definidos en `specs/business-rules.md` y `specs/acceptance-criteria.md`. En el código, cada error de dominio (`BookingConflictError`, `LateCancellationError`, etc.) se traduce a su código HTTP en un único manejador de errores de Fastify.
 
 ---
 
 ## 7. Manejo del Tiempo
 
-* **Hora del complejo:** fecha y horas de las reservas (`booking_date`, `start_time`, `end_time`) se interpretan en **America/Panama** [PENDIENTE PL].
+* **Hora del complejo:** fecha y horas de las reservas (`booking_date`, `start_time`, `end_time`) se interpretan en **America/Panama** (ADR-007). Se guardan como `DATE` y `TIME` locales (ver `specs/data-model.md`).
 * **Marcas de auditoría:** `created_at` y los eventos de auditoría se guardan en **UTC** (RNF-06).
 * **Reloj inyectable:** la aplicación recibe un objeto `Clock` (`now()`); en producción usa la hora real y en las pruebas una hora fija. Esto permite probar BR-02 (tiempo pasado) y BR-05 (ventana de 2 horas) de forma determinista, como piden los escenarios de cancelación en `acceptance-criteria.md`.
 
 ---
 
-## 8. Seguridad del Código de Reserva (`booking_id`) — [PENDIENTE PL]
+## 8. Seguridad del Código de Reserva (`booking_id`)
 
 * Como el `booking_id` es la única credencial para consultar y cancelar (modelo sin login, ADR-002), debe ser **difícil de adivinar**.
-* Formato propuesto: `CY-` + **8 caracteres** generados con un generador criptográfico (`crypto.randomInt`), usando un alfabeto sin caracteres ambiguos (sin `0`, `O`, `1`, `I`). Ejemplo: `CY-7K3M9QXA` (≈ 10¹² combinaciones).
+* Formato oficial (BR-03, ADR-002): `CY-` + **8 caracteres** generados con un generador criptográfico (`crypto.randomInt`) sobre el alfabeto `23456789ABCDEFGHJKLMNPQRSTUVWXYZ`. Ejemplo: `CY-7K3M9QXA` (≈ 1,1 × 10¹² combinaciones).
+* En la base de datos se guarda en `bookings.booking_code`, separado de la clave interna numérica, que nunca se expone.
 * Si se produce una colisión de código al insertar (probabilidad despreciable), se genera otro y se reintenta.
-* Los endpoints `GET` y `DELETE` por `booking_id` tienen límite de intentos por IP (`@fastify/rate-limit`).
+* `GET /api/v1/bookings/{booking_id}` y `POST /api/v1/bookings/{booking_id}/cancel` tienen límite de intentos por IP (`@fastify/rate-limit`), que responde `429 RATE_LIMITED`.
 
 ---
 

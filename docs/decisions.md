@@ -15,6 +15,7 @@
 * [ADR-005: Estrategia para el Cambio Inesperado de Requerimiento a Mitad de Ciclo](#adr-005-estrategia-para-el-cambio-inesperado-de-requerimiento-a-mitad-de-ciclo)
 * [ADR-006: Módulo de Administrador y Gestión Dinámica de Canchas Fuera de Alcance en v1](#adr-006-módulo-de-administrador-y-gestión-dinámica-de-canchas-fuera-de-alcance-en-v1)
 * [ADR-007: Zona Horaria Oficial (America/Panama), Unificación de Estados y Evaluación Perezosa](#adr-007-zona-horaria-oficial-americapanama-unificación-de-estados-y-evaluación-perezosa)
+* [ADR-008: Stack Tecnológico TypeScript + MySQL y Decisiones del Modelo de Datos y la API](#adr-008-stack-tecnológico-typescript--mysql-y-decisiones-del-modelo-de-datos-y-la-api)
 
 ---
 
@@ -112,3 +113,28 @@
 * **Consecuencias:**  
   * *Positivas:* Coherencia absoluta entre especificaciones y código; simplificación operacional del backend (RNF-02) sin workers externos.
   * *Negativas:* Requiere manejo estricto de conversión de zonas horarias en la capa de servicios (`date-fns-tz`).
+
+---
+
+### ADR-008: Stack Tecnológico TypeScript + MySQL y Decisiones del Modelo de Datos y la API
+* **Estado:** Propuesto (issue #21)
+* **Fecha:** 2026-11-15
+* **Autores:** David (Architecture Lead)
+* **Contexto:**  
+  El PDF del curso da libertad tecnológica pero exige justificarla en `specs/architecture.md`. El equipo quería un frontend vistoso, el Dev Lead prefiere no trabajar con Python, ya contaba con MySQL 8.4 instalado y la regla BR-01 exige garantías reales de concurrencia (RNF-01).
+* **Decisión:**  
+  1. **Stack:** TypeScript en todo el proyecto. Backend con Fastify, Zod y Prisma sobre **MySQL 8.4**; frontend con React, Vite, Tailwind CSS y shadcn/ui; pruebas con Vitest y Supertest. Detalle en `specs/architecture.md`.
+  2. **Anticolisión en dos barreras:** bloqueo `SELECT ... FOR UPDATE` de la fila de la cancha dentro de una transacción `READ COMMITTED`, más un índice único sobre la columna generada `active_slot` que impide dos reservas `CONFIRMADA` en el mismo turno.
+  3. **Clave interna separada del código público:** `bookings.id` (`BIGINT`) es interno; `bookings.booking_code` (`CY-` + 8 caracteres) es el `booking_id` de la API.
+  4. **Fecha y hora:** `DATE` + `TIME` en hora de Panamá para los turnos; `DATETIME(3)` en UTC para marcas técnicas y auditoría (`booking_events`).
+  5. **Cancelación:** `POST /api/v1/bookings/{booking_id}/cancel`, porque cancelar cambia el estado y no elimina el registro.
+  6. **Códigos de error:** el catálogo de `specs/api.md` es la fuente única; se agrega `429 RATE_LIMITED`.
+* **Alternativas descartadas:**
+  * *Python + FastAPI:* obliga a usar dos lenguajes junto a React.
+  * *SQLite:* una sola escritura simultánea y menos adecuada para desplegar.
+  * *PostgreSQL con restricción `EXCLUDE`:* la garantía más fuerte, pero agrega una dependencia que el equipo no tenía instalada.
+  * *`booking_code` como clave primaria:* mezcla el identificador público con el interno.
+  * *`DELETE /bookings/{id}`:* da a entender que la reserva se elimina.
+* **Consecuencias:**  
+  * *Positivas:* un solo lenguaje y esquemas de validación compartidos entre frontend y backend; la doble reserva queda bloqueada también a nivel de base de datos; las pruebas de concurrencia corren contra MySQL real.
+  * *Negativas:* Prisma no modela columnas generadas ni `CHECK`, por lo que requieren una migración SQL manual; el equipo necesita Docker o MySQL instalado para ejecutar las pruebas de integración.
