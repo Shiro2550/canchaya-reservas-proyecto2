@@ -236,4 +236,22 @@
 
 ---
 
+### Entrada 16: Imagen Docker, docker-compose Completo e Instrucciones de Ejecución (Issue #34)
+* **Fecha:** 2026-11-15
+* **Responsable:** Estudiante 2 — Architecture / Development Lead (David)
+* **Actividad:** Contenerizar la aplicación, probar el `docker-compose` de punta a punta y documentar en el README cómo ejecutar el proyecto con Docker y con npm.
+* **IA Utilizada:** Claude Code (aplicación de escritorio) — Claude Opus 5.5, con Docker 29 / Compose v5 y el navegador integrado.
+* **Solicitud (Prompt):**
+  > *"Haz una issue más con una PR más, que es probar el docker-compose y la imagen y contenedor que se crea; crea los pasos para crear el contenedor o la imagen a partir de un archivo de instrucciones (README) y así correr todo bien. Hazlo todo."*
+* **Resultado Obtenido:**
+  * `Dockerfile` multi-etapa y `docker/entrypoint.sh` (migraciones → canchas → API). La API sirve la web compilada y devuelve `index.html` en las rutas de la SPA (7 pruebas nuevas; 101 en total).
+  * `docker-compose.yml` con `mysql` y `app`, healthchecks y puertos configurables (`MYSQL_PORT`, `APP_PORT`). `.dockerignore` y `.gitattributes` (scripts con finales LF para quien clone en Windows).
+  * Verificación: ambos contenedores `healthy`; reservar, 409, grilla, cancelar, `/docs` y rutas de la SPA en `http://localhost:8080`; auditoría en UTC; los datos persisten tras reiniciar la app.
+  * **Fallo encontrado y corregido:** al correr las pruebas desde el equipo contra el MySQL de Docker (puerto 3307), el motor de migraciones de Prisma pasaba de TCP al socket `/var/run/mysqld/mysqld.sock`, que en el equipo pertenece al MySQL local, y migraba la base equivocada. El contenedor ahora usa el socket `canchaya-docker.sock`; con eso, las 101 pruebas pasan contra el MySQL de Docker.
+  * La preparación de la base de pruebas ahora funciona en Windows (`npx` mediante la shell) y muestra un mensaje claro si MySQL no está disponible.
+* **Decisión Tomada:**
+  La opción con Docker es la recomendada para que QA y el profesor prueben sin instalar Node ni MySQL; la de npm queda para desarrollo. La imagen pesa ~1,1 GB porque conserva las dependencias de desarrollo (`tsx`, Prisma CLI) con las que corre la API; se puede reducir más adelante.
+
+---
+
 *(Nuevas entradas se añadirán conforme los Estudiantes 2 y 3 avancen en arquitectura, implementación y testing, o cuando se aplique el cambio inesperado de requerimiento).*

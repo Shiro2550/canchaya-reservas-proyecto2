@@ -99,28 +99,136 @@ Para cumplir con la sección 13 de la rúbrica del proyecto (*"Introducir un cam
 | Frontend | React + Vite + Tailwind CSS + shadcn/ui |
 | Pruebas | Vitest + Supertest |
 
-Detalle en `specs/architecture.md`, `specs/data-model.md` y `specs/api.md`. Instrucciones completas en `specs/architecture.md` (sección 13).
-
-**Inicio rápido:**
-```bash
-cp .env.example .env          # variables de desarrollo
-docker compose up -d          # solo si no tienes MySQL 8.4 local
-npm install
-npm run db:deploy && npm run db:seed
-npm run dev                   # web: http://localhost:5173 · API: http://127.0.0.1:3000/docs
-npm test                      # pruebas automatizadas
-```
+Detalle en `specs/architecture.md`, `specs/data-model.md` y `specs/api.md`.
 
 ---
 
-## 7. Estado y Próximos Pasos
+## 7. Cómo Ejecutar el Proyecto
+
+Hay dos formas. Si solo quieres **probar la aplicación**, usa la opción A: no necesitas instalar Node ni MySQL.
+
+| | Opción A — Todo con Docker | Opción B — Desarrollo con npm |
+| :--- | :--- | :--- |
+| Para qué | Probar la app completa (QA, profesor, compañeros) | Programar y ejecutar las pruebas |
+| Necesitas | Git + Docker | Git + Node.js 24 o superior + MySQL 8.4 (instalado o con Docker) |
+| Dirección | http://localhost:8080 | http://localhost:5173 |
+
+### Opción A — Todo con Docker (recomendada para probar)
+
+**Requisitos:** [Git](https://git-scm.com/) y Docker con Compose v2 (en Windows y macOS: *Docker Desktop* abierto; en Linux: *Docker Engine*). Comprueba con `docker compose version`.
+
+1. **Clona el repositorio:**
+   ```bash
+   git clone https://github.com/Shiro2550/canchaya-reservas-proyecto2.git
+   cd canchaya-reservas-proyecto2
+   ```
+2. **Construye y levanta los contenedores** (la primera vez descarga las imágenes de MySQL y Node y tarda unos minutos):
+   ```bash
+   docker compose up -d --build
+   ```
+3. **Espera a que ambos digan `healthy`:**
+   ```bash
+   docker compose ps
+   ```
+   Al arrancar, la app aplica sola las migraciones y carga las canchas C1–C4.
+4. **Abre la aplicación:**
+   * Web: **http://localhost:8080**
+   * Documentación interactiva de la API: **http://localhost:8080/docs**
+
+**Comandos útiles:**
+
+| Comando | Qué hace |
+| :--- | :--- |
+| `docker compose logs -f app` | Ver los registros de la app (Ctrl+C para salir) |
+| `docker compose stop` | Detener sin borrar nada |
+| `docker compose up -d` | Volver a encender |
+| `docker compose up -d --build` | Reconstruir la imagen después de un `git pull` |
+| `docker compose down` | Apagar y quitar los contenedores (las reservas se conservan) |
+| `docker compose down -v` | Apagar y **borrar también la base de datos** |
+
+**¿Puerto ocupado?** Si ya tienes MySQL instalado (puerto 3306) o algo usa el 8080, cambia los puertos al levantar (o guárdalos como `MYSQL_PORT` / `APP_PORT` en un archivo `.env`):
+
+```bash
+MYSQL_PORT=3307 APP_PORT=8081 docker compose up -d --build
+```
+En Windows (PowerShell):
+```powershell
+$env:MYSQL_PORT=3307; $env:APP_PORT=8081; docker compose up -d --build
+```
+
+### Opción B — Desarrollo local con npm
+
+**Requisitos:** Git, **Node.js 24 o superior** (trae npm 11; comprueba con `node -v`) y MySQL 8.4.
+
+1. **Clona el repositorio** (igual que en la opción A).
+2. **Crea tu archivo de variables** a partir del ejemplo:
+   ```bash
+   cp .env.example .env
+   ```
+   En Windows (PowerShell): `Copy-Item .env.example .env`
+3. **Prepara MySQL 8.4** (elige una):
+   * **Con Docker, solo la base de datos:** `docker compose up -d mysql`. Crea las bases `canchaya`, `canchaya_shadow` y `canchaya_test` y el usuario `canchaya`.
+     Si **ya tienes MySQL instalado** (puerto 3306 ocupado), antes edita `.env`: pon `MYSQL_PORT=3307` y cambia `3306` por `3307` en las tres URL. Docker Compose lee ese mismo archivo, así que el puerto queda guardado.
+   * **Con MySQL instalado:** entra como root (`mysql -u root -p`) y ejecuta:
+     ```sql
+     CREATE DATABASE canchaya; CREATE DATABASE canchaya_shadow; CREATE DATABASE canchaya_test;
+     CREATE USER 'canchaya'@'localhost' IDENTIFIED BY 'canchaya';
+     GRANT ALL PRIVILEGES ON canchaya.* TO 'canchaya'@'localhost';
+     GRANT ALL PRIVILEGES ON canchaya_shadow.* TO 'canchaya'@'localhost';
+     GRANT ALL PRIVILEGES ON canchaya_test.* TO 'canchaya'@'localhost';
+     ```
+4. **Instala las dependencias** (también genera el cliente de Prisma):
+   ```bash
+   npm install
+   ```
+5. **Crea las tablas y carga las canchas:**
+   ```bash
+   npm run db:deploy
+   npm run db:seed
+   ```
+6. **Arranca la API y la web** (Ctrl+C para detener):
+   ```bash
+   npm run dev
+   ```
+   * Web: **http://localhost:5173**
+   * API y documentación: **http://127.0.0.1:3000/docs**
+7. **Ejecuta las pruebas automatizadas** (usan la base `canchaya_test`, que se vacía en cada ejecución):
+   ```bash
+   npm test
+   ```
+
+Otros comandos: `npm run typecheck` (verificar tipos), `npm run build` (compilar), `npm run db:reset` (borrar y recrear la base de desarrollo). Más detalle en `specs/architecture.md`, sección 13.
+
+### Recorrido de prueba (2 minutos)
+
+1. En la página de inicio, elige una cancha y pulsa **Ver horarios**.
+2. Elige un día y un turno **verde**. En el formulario escribe un correo sin `@` para ver la validación; luego corrígelo y pulsa **Reservar ahora**.
+3. Copia el **código `CY-…`** de la confirmación.
+4. Ve a **Mi reserva**, pega el código y pulsa **Cancelar reserva**: el turno vuelve a quedar libre.
+5. **Doble reserva:** abre la misma cancha y el mismo día en dos pestañas, reserva un turno en la primera e intenta reservarlo en la segunda. Debe aparecer *"Ese turno ya no está disponible"* y el turno pasa a **Ocupado**.
+6. Explora la API en `/docs` (*Try it out*).
+
+### Problemas frecuentes
+
+| Síntoma | Solución |
+| :--- | :--- |
+| `port is already allocated` al levantar Docker | Cambia `MYSQL_PORT` o `APP_PORT` (ver «¿Puerto ocupado?»). |
+| `docker compose ps` muestra la app `unhealthy` o reiniciándose | Revisa `docker compose logs app`. Si MySQL todavía estaba arrancando, espera unos segundos: la app se reinicia sola. |
+| La web dice "No pudimos cargar las canchas" (opción B) | La API no está corriendo: revisa que `npm run dev` muestre `[api] … Server listening`. |
+| `npm test` falla con "No se pudieron aplicar las migraciones" | MySQL está apagado o `TEST_DATABASE_URL` de `.env` apunta a otro puerto o base. |
+| Errores de Prisma después de un `git pull` | Ejecuta `npm install` y luego `npm run db:deploy`. |
+| Tu `.env` antiguo tiene `PORT` y `HOST` | Renómbralas a `API_PORT` y `API_HOST` (ver `.env.example`). |
+
+---
+
+## 8. Estado y Próximos Pasos
 
 | Milestone | Estado |
 | :--- | :--- |
 | 1. Corrección de Inconsistencias de Specs | ✅ Completado |
 | 2. Arquitectura y Diseño Técnico | ✅ Completado (PR #23 y #24) |
-| 3. Implementación Core | 🔄 Siguiente — Dev Lead (David) |
-| 4. Pruebas Automatizadas y CI | ⏳ En paralelo con el 3 — QA Lead |
+| 3. Implementación Core | ✅ Completado (PR #30, #31, #32 y Docker) |
+| 4. Pruebas Automatizadas y CI | 🔄 Siguiente — QA Lead (101 pruebas ya disponibles como base) |
 | 5. Cambio de Requerimiento: Buffer 15 min | ⏳ Tras la primera versión funcional — todo el equipo |
 
 **Flujo de trabajo:** cada trabajo se registra como issue en su milestone, se desarrolla en una rama con el número del issue (`feature/<n>-<nombre>`) y se integra con un Pull Request que cierra ese issue. Cada paso con IA se documenta en `docs/ai-log.md`.

@@ -8,6 +8,10 @@ const envSchema = z.object({
   API_HOST: z.string().default("127.0.0.1"),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   TZ_COMPLEX: z.string().default(COMPLEX_TIMEZONE),
+  /** Carpeta de la web compilada; si existe, la API también sirve la SPA (Docker / producción). */
+  WEB_DIST_DIR: z.string().optional(),
+  /** Publica la documentación OpenAPI en /docs. */
+  API_DOCS: z.enum(["true", "false"]).default("true").transform((v) => v === "true"),
 });
 
 export type Env = z.infer<typeof envSchema>;

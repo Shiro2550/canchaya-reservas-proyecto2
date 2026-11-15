@@ -11,7 +11,7 @@ function body(code: string, message: string): ErrorResponse {
  * Manejador único de errores (specs/architecture.md, sección 6).
  * Toda respuesta de error sale con el formato `{ error: { code, message } }`.
  */
-export function registerErrorHandler(app: FastifyInstance): void {
+export function registerErrorHandler(app: FastifyInstance, options: { spaFallback?: boolean } = {}): void {
   app.setErrorHandler((error: FastifyError, request, reply) => {
     if (isAppError(error)) {
       return reply.status(error.statusCode).send(body(error.code, error.message));
@@ -42,6 +42,11 @@ export function registerErrorHandler(app: FastifyInstance): void {
   });
 
   app.setNotFoundHandler((request, reply) => {
+    // Rutas de la SPA (/canchas/C1, /reserva/CY-…): se entrega index.html y React Router decide.
+    const isPage = request.method === "GET" && !request.url.startsWith("/api") && !request.url.startsWith("/docs");
+    if (options.spaFallback && isPage) {
+      return reply.type("text/html").sendFile("index.html");
+    }
     return reply
       .status(404)
       .send(body("ROUTE_NOT_FOUND", `La ruta ${request.method} ${request.url} no existe.`));
