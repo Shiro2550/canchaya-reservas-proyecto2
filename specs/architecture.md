@@ -5,7 +5,7 @@
 **Rol Responsable:** Estudiante 2 — Architecture / Development Lead (David)  
 **Versión:** 1.1.0  
 **Fecha:** 2026-11-15  
-**Estado:** Aprobado y Consensuado por el Equipo (Product Lead, Dev Lead y QA Lead) — v1.1.0 en revisión (issue #21)  
+**Estado:** Aprobado y Consensuado por el Equipo (Product Lead, Dev Lead y QA Lead) — v1.1.0 fusionada en PR #23  
 
 ---
 
@@ -207,11 +207,11 @@ Los códigos de error son los del catálogo de `specs/api.md` (sección 3), que 
 | 3 | Cancha inexistente o inactiva | `404` | `COURT_NOT_FOUND` |
 | 4 | Colisión BR-01 | `409` | `BOOKING_CONFLICT` |
 
-**Orden de validación al cancelar una reserva** (propuesto al Product Lead en el issue #22):
+**Orden de validación al cancelar una reserva** (`specs/business-rules.md` sección 2.2):
 
 | Orden | Validación | Código HTTP | Código de error |
 | :---: | :--- | :---: | :--- |
-| 1 | La reserva no existe | `404` | `BOOKING_NOT_FOUND` |
+| 1 | La reserva no existe o el código está mal formado | `404` | `BOOKING_NOT_FOUND` |
 | 2 | La reserva ya está `CANCELADA` o `COMPLETADA` (BR-04) | `409` | `INVALID_STATE_TRANSITION` |
 | 3 | Faltan menos de 2 horas para el inicio (BR-05) | `400` | `LATE_CANCELLATION` |
 

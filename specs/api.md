@@ -3,9 +3,9 @@
 **Proyecto:** Sistema de Reservas Especializado de Canchas Deportivas (`CanchaYa`)  
 **Curso:** Tópicos Especiales II — Prof. Regis Rivera  
 **Rol Responsable:** Estudiante 2 — Architecture / Development Lead (David)  
-**Versión:** 1.1.0  
+**Versión:** 1.2.0  
 **Fecha:** 2026-11-15  
-**Estado:** En revisión (issue #21)  
+**Estado:** v1.1.0 aprobada (PR #23); v1.2.0 en revisión (issue #22)  
 
 ---
 
@@ -28,6 +28,8 @@
     { "start_time": "18:00", "end_time": "19:00", "status": "OCUPADO", "available": false }
   ]
   ```
+* **Rango de fechas:** de hoy a hoy + 30 días, en hora de Panamá (BR-02, `specs/business-rules.md` sección 2.3).
+* **Respuesta 400 Bad Request:** Fecha anterior a hoy (`PAST_DATE_TIME`) o a más de 30 días (`MAX_ADVANCE_EXCEEDED`).
 * **Respuesta 404 Not Found:** La cancha no existe o está inactiva (`COURT_NOT_FOUND`).
 * **Respuesta 422 Unprocessable Entity:** El parámetro `date` falta o no tiene el formato `YYYY-MM-DD` (`VALIDATION_ERROR`).
 
@@ -70,7 +72,7 @@
 ### `GET /api/v1/bookings/{booking_id}`
 * **Descripción:** Consulta el estado y detalle de una reserva mediante su código localizador. Si la reserva estaba `CONFIRMADA` pero su hora de fin ya pasó en hora de Panamá, se retorna como `COMPLETADA` mediante evaluación perezosa.
 * **Respuesta 200 OK:** Datos de la reserva y estado (`CONFIRMADA`, `CANCELADA` o `COMPLETADA`).
-* **Respuesta 404 Not Found:** Código inexistente (`BOOKING_NOT_FOUND`).
+* **Respuesta 404 Not Found:** Código inexistente o mal formado (`BOOKING_NOT_FOUND`); ambos casos devuelven el mismo mensaje (`specs/business-rules.md` sección 2.4).
 * **Respuesta 429 Too Many Requests:** Demasiados intentos de consulta desde la misma IP (`RATE_LIMITED`).
 
 ### `POST /api/v1/bookings/{booking_id}/cancel`
@@ -78,10 +80,10 @@
 * **Por qué `POST .../cancel` y no `DELETE`:** cancelar no elimina la reserva; cambia su estado a `CANCELADA` y la conserva para consulta y auditoría. `DELETE` daría a entender que el recurso desaparece.
 * **Respuesta 200 OK:** Reserva cancelada con éxito; retorna la reserva con estado `CANCELADA` y el slot queda libre inmediatamente.
 * **Respuesta 400 Bad Request:** Cancelación tardía rechazada (`LATE_CANCELLATION`, anticipación menor a 2 horas).
-* **Respuesta 404 Not Found:** Reserva inexistente (`BOOKING_NOT_FOUND`).
+* **Respuesta 404 Not Found:** Reserva inexistente o código mal formado (`BOOKING_NOT_FOUND`).
 * **Respuesta 409 Conflict:** Intento de cancelar una reserva ya `CANCELADA` o `COMPLETADA` (`INVALID_STATE_TRANSITION`).
 * **Respuesta 429 Too Many Requests:** Demasiados intentos desde la misma IP (`RATE_LIMITED`).
-* **Orden de validación:** 404 → 409 → 400 (propuesto al Product Lead en el issue #22).
+* **Orden de validación:** 404 → 409 → 400 (`specs/business-rules.md` sección 2.2).
 
 ---
 
@@ -104,11 +106,11 @@ Todas las respuestas de error (4xx y 5xx) siguen la estructura homogénea:
 | :--- | :--- | :--- |
 | **400** | `OUT_OF_OPERATING_HOURS` | Solicitud fuera del rango 08:00 - 23:00. |
 | **400** | `INVALID_TIME_SLOT` | Hora de inicio no exacta (no termina en `:00`). |
-| **400** | `PAST_DATE_TIME` | Fecha u hora de inicio anterior a la hora actual del complejo. |
-| **400** | `MAX_ADVANCE_EXCEEDED` | Fecha solicitada a más de 30 días de anticipación. |
+| **400** | `PAST_DATE_TIME` | Fecha u hora de inicio anterior a la hora actual del complejo (también al consultar la grilla de una fecha pasada). |
+| **400** | `MAX_ADVANCE_EXCEEDED` | Fecha solicitada a más de 30 días de anticipación (al reservar o al consultar la grilla). |
 | **400** | `LATE_CANCELLATION` | Intento de cancelación con menos de 2 horas de anticipación. |
 | **404** | `COURT_NOT_FOUND` | El ID de cancha no existe o está inactiva. |
-| **404** | `BOOKING_NOT_FOUND` | El `booking_id` no existe en el sistema. |
+| **404** | `BOOKING_NOT_FOUND` | El `booking_id` no existe en el sistema o no tiene el formato válido. |
 | **409** | `BOOKING_CONFLICT` | Solapamiento con otra reserva confirmada en la misma cancha (BR-01). |
 | **409** | `INVALID_STATE_TRANSITION`| Intento de cancelar una reserva ya cancelada o completada. |
 | **422** | `VALIDATION_ERROR` | Falla en esquema de entrada (email inválido, nombre < 3 chars, teléfono no cumple 7-15 dígitos). |
