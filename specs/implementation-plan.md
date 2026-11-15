@@ -39,16 +39,16 @@
 ---
 
 ### Milestone 3: Implementación Core de Reservas y Reglas Críticas (Para Estudiante 2 - David)
-* [ ] **TASK-11:** Implementación del catálogo de canchas y cálculo de slots disponibles (08:00 - 23:00).
-* [ ] **TASK-12:** Implementación del endpoint de creación de reserva con generación de `booking_id` alfanumérico único.
-* [ ] **TASK-13:** **Implementación del algoritmo de validación de no colisión (BR-01):**
+* [x] **TASK-11:** Implementación del catálogo de canchas y cálculo de slots disponibles (08:00 - 23:00).
+* [x] **TASK-12:** Implementación del endpoint de creación de reserva con generación de `booking_id` alfanumérico único.
+* [x] **TASK-13:** **Implementación del algoritmo de validación de no colisión (BR-01):**
   * Validación atómica a nivel de consulta/transacción SQL:
     ```sql
     WHERE court_id = :court_id 
       AND status = 'CONFIRMADA'
       AND (:start_time < end_time AND :end_time > start_time)
     ```
-* [ ] **TASK-14:** Implementación de endpoints de consulta por `booking_id` y cancelación autónoma (con validación de 2 horas previas).
+* [x] **TASK-14:** Implementación de endpoints de consulta por `booking_id` y cancelación autónoma (con validación de 2 horas previas).
 * [ ] **TASK-15:** Interfaz de usuario en React + Vite + Tailwind CSS + shadcn/ui (ADR-008) para el flujo completo sin login.
 
 ---

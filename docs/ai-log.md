@@ -201,4 +201,22 @@
 
 ---
 
+### Entrada 14: API Core — Catálogo, Disponibilidad, Reservas y Cancelación (Issue #28)
+* **Fecha:** 2026-11-15
+* **Responsable:** Estudiante 2 — Architecture / Development Lead (David)
+* **Actividad:** TASK-11 a TASK-14: implementar la API REST de `specs/api.md` con las reglas de `specs/business-rules.md` y sus pruebas automatizadas.
+* **IA Utilizada:** Claude Code (aplicación de escritorio) — Claude Opus 5.5.
+* **Solicitud (Prompt):**
+  > *"Ya se aprobaron todos los merge, ¿ahora qué sigue? Por cierto, el sitio aún no hace nada, no tiene botones; solo hiciste la vista, ¿no?"* (Se continúa con la API core antes de las pantallas.)
+* **Resultado Obtenido:**
+  * **Dominio puro** (sin base de datos): conversión de zona horaria Panamá↔UTC, reglas de horario BR-02, función `overlaps()` de BR-01 con el margen de BR-06 como parámetro, generación CSPRNG del código, estado `COMPLETADA` calculado al leer y orden de cancelación 409 → 400.
+  * **Endpoints:** `GET /courts`, `GET /courts/{id}/availability` (`DISPONIBLE`/`OCUPADO`/`PASADO`), `POST /bookings`, `GET /bookings/{booking_id}` y `POST /bookings/{booking_id}/cancel`, más la documentación OpenAPI en `/docs`.
+  * **Anticolisión con dos barreras:** transacción `READ COMMITTED` con `SELECT ... FOR UPDATE` sobre la cancha y la fórmula de BR-01; si aun así el índice único `uq_bookings_active_slot` se dispara, se responde 409. Auditoría `CREATED`/`CANCELLED` en la misma transacción. Límite de intentos (429) en las rutas por código.
+  * **Pruebas:** 94 en verde (7 archivos con los nombres de `docs/testing.md`): los 5 casos teóricos de BR-01, las Características 1 a 4 de Gherkin y concurrencia real (10 reservas simultáneas por el mismo turno → exactamente 1 confirmada y 9 con 409; dos cancelaciones simultáneas → 200 y 409). Las pruebas de concurrencia se repitieron 5 veces sin fallos.
+  * **Verificación manual** contra la base de desarrollo: reservar, repetir (409), ver el turno `OCUPADO`, consultar y cancelar.
+* **Decisión Tomada:**
+  La respuesta de reserva incluye `court_name` (agregado a `api.md`) para que la confirmación muestre la cancha. Un `end_time` enviado por el cliente se ignora. Las pruebas de integración quedan como base para el QA Lead (milestone 4), que puede ampliarlas y conectarlas a CI.
+
+---
+
 *(Nuevas entradas se añadirán conforme los Estudiantes 2 y 3 avancen en arquitectura, implementación y testing, o cuando se aplique el cambio inesperado de requerimiento).*

@@ -10,7 +10,7 @@
 ---
 
 > [!NOTE]  
-> Contrato REST de la v1. Define los endpoints que cumplen los casos de uso de `specs/requirements.md` con las reglas de `specs/business-rules.md`. La correspondencia entre campos de la API y columnas de la base de datos está en `specs/data-model.md` (sección 6). Todas las rutas tienen el prefijo `/api/v1` y usan JSON.
+> Contrato REST de la v1. La documentación interactiva (OpenAPI) generada desde el código está en `http://127.0.0.1:3000/docs` al ejecutar la API. Define los endpoints que cumplen los casos de uso de `specs/requirements.md` con las reglas de `specs/business-rules.md`. La correspondencia entre campos de la API y columnas de la base de datos está en `specs/data-model.md` (sección 6). Todas las rutas tienen el prefijo `/api/v1` y usan JSON.
 
 ## 1. Endpoints de Canchas y Disponibilidad
 
@@ -57,11 +57,12 @@
     "customer_phone": "+507 6123-4567"
   }
   ```
-* **Respuesta 201 Created:** Retorna el `booking_id` generado (formato `CY-` + 8 caracteres criptográficos base32), `end_time` calculado y el estado inicial `CONFIRMADA`.
+* **Respuesta 201 Created:** Retorna el `booking_id` generado, el nombre de la cancha (`court_name`, para mostrarlo en la confirmación) (formato `CY-` + 8 caracteres criptográficos base32), `end_time` calculado y el estado inicial `CONFIRMADA`.
   ```json
   {
     "booking_id": "CY-7K3M9QXA",
     "court_id": "C1",
+    "court_name": "Cancha 1 - Fútbol 7 Sintético",
     "date": "2026-11-20",
     "start_time": "18:00",
     "end_time": "19:00",
