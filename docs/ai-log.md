@@ -219,4 +219,21 @@
 
 ---
 
+### Entrada 15: Interfaz Web en React — Flujo Completo sin Login (Issue #29)
+* **Fecha:** 2026-11-15
+* **Responsable:** Estudiante 2 — Architecture / Development Lead (David)
+* **Actividad:** TASK-15: construir las pantallas del flujo de reserva sobre la API core y probarlas en el navegador.
+* **IA Utilizada:** Claude Code (aplicación de escritorio) — Claude Opus 5.5, con el navegador integrado para la verificación.
+* **Solicitud (Prompt):**
+  > *"Bien, vamos con el 29."* (Antes: *"El sitio aún no hace nada, no tiene botones."*)
+* **Resultado Obtenido:**
+  * Pantallas: catálogo con filtro por deporte; grilla de disponibilidad con selector de 31 días (se refresca cada 30 s); formulario de reserva en un modal con validación en vivo; confirmación con el código y botón de copiar; consulta y cancelación con diálogo de confirmación; búsqueda por código. Diseño responsivo con modo claro y oscuro.
+  * Stack: React Router 8, TanStack Query 5, react-hook-form + Zod (los mismos esquemas de `@canchaya/shared` que valida la API), componentes al estilo shadcn/ui sobre Radix, Motion y Sonner.
+  * Verificado en el navegador contra la API real: grilla del día con horas `PASADO`, errores de validación en vivo, reserva creada (pantalla de confirmación), cancelación, conflicto 409 simulado con otra reserva por la API (aviso y grilla actualizada a "Ocupado"), búsqueda en minúsculas y código inexistente.
+  * Corrección encontrada al probar: la API leía la variable genérica `PORT`, que el entorno de vista previa fijaba en 5173 (el puerto de la web). Se renombró a `API_PORT` / `API_HOST`.
+* **Decisión Tomada:**
+  Componentes propios al estilo shadcn/ui en lugar de su CLI (sin dependencia del registro remoto). La regla de 2 horas se refleja en la interfaz, pero la decisión final sigue en el servidor. El servido del frontend compilado por Fastify en producción queda pendiente para el despliegue.
+
+---
+
 *(Nuevas entradas se añadirán conforme los Estudiantes 2 y 3 avancen en arquitectura, implementación y testing, o cuando se aplique el cambio inesperado de requerimiento).*

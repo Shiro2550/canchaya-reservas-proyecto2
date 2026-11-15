@@ -270,17 +270,19 @@ hayConflicto(nueva, existente, bufferMinutos = 0): boolean
 
 ## 10. Frontend (SPA)
 
-| Pantalla | Historia | Contenido |
-| :--- | :--- | :--- |
-| Catálogo de canchas | US-01 | Tarjetas por cancha con deporte, tarifa y filtro por deporte |
-| Disponibilidad | US-01 | Selector de fecha (hoy a +30 días) y grilla de slots `DISPONIBLE` / `OCUPADO` / `PASADO` |
-| Formulario de reserva | US-02 | Panel lateral/modal con nombre, teléfono y email; validación en vivo con los mismos esquemas Zod |
-| Confirmación | US-02 / OC-03 | Código `booking_id` destacado con botón de copiar |
-| Mi reserva | US-04 / US-05 | Búsqueda por código, detalle, estado y botón de cancelar (deshabilitado si faltan < 2 h) |
-| Conflicto | US-03 | Mensaje claro y actualización automática de la grilla al recibir `409` |
+| Pantalla | Ruta | Historia | Contenido |
+| :--- | :--- | :--- | :--- |
+| Catálogo de canchas | `/` | US-01 | Tarjetas por cancha con deporte, tarifa y filtro por deporte |
+| Disponibilidad | `/canchas/:courtId?fecha=` | US-01 | Selector de fecha (hoy a +30 días) y grilla de slots `DISPONIBLE` / `OCUPADO` / `PASADO`; se refresca cada 30 s y al volver a la pestaña (OC-04) |
+| Formulario de reserva | (modal en Disponibilidad) | US-02 | Nombre, teléfono y email; validación en vivo con los mismos esquemas Zod de la API |
+| Confirmación y Mi reserva | `/reserva/:code` | US-02 / US-04 / US-05 / OC-03 | Código destacado con botón de copiar, detalle, estado y cancelación con confirmación (oculta si faltan < 2 h) |
+| Buscar reserva | `/mi-reserva` | US-04 | Campo de código con validación de formato |
+| Conflicto | — | US-03 | Aviso con el mensaje oficial y actualización automática de la grilla al recibir `409` |
+
+**Implementación:** React Router (rutas), TanStack Query (caché y refresco de datos), react-hook-form + Zod (formularios), componentes propios al estilo shadcn/ui sobre Radix (`src/frontend/src/components/ui`), Motion (animaciones) y Sonner (avisos). Las respuestas de la API se validan en el cliente con los esquemas de `@canchaya/shared`.
 
 * En desarrollo, Vite redirige `/api` al backend (*proxy*), sin configurar CORS.
-* En producción, Fastify sirve los archivos compilados del frontend: un solo proceso que desplegar, manteniendo el desacoplamiento porque la SPA solo se comunica por la API REST (RNF-04).
+* En producción (previsto, aún no implementado), Fastify servirá los archivos compilados del frontend: un solo proceso que desplegar, manteniendo el desacoplamiento porque la SPA solo se comunica por la API REST (RNF-04).
 
 ---
 
@@ -315,7 +317,7 @@ hayConflicto(nueva, existente, bufferMinutos = 0): boolean
 | `DATABASE_URL` | `mysql://canchaya:canchaya@localhost:3306/canchaya` | Base de desarrollo (Prisma y API) |
 | `SHADOW_DATABASE_URL` | `mysql://canchaya:canchaya@localhost:3306/canchaya_shadow` | Base temporal de `prisma migrate dev` |
 | `TEST_DATABASE_URL` | `mysql://canchaya:canchaya@localhost:3306/canchaya_test` | Base exclusiva de las pruebas; se vacía en cada ejecución |
-| `PORT` / `HOST` | `3000` / `127.0.0.1` | Dirección del backend |
+| `API_PORT` / `API_HOST` | `3000` / `127.0.0.1` | Dirección del backend (no se usa `PORT` para no chocar con otras herramientas) |
 | `LOG_LEVEL` | `info` | Nivel de logs (pino) |
 | `TZ_COMPLEX` | `America/Panama` | Zona horaria del complejo |
 
