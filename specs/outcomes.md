@@ -44,7 +44,7 @@ Actualmente, los centros de complejos deportivos gestionan sus reservas a travé
 1. *¿Qué pasa si dos personas intentan reservar la cancha para las 20:00 al mismo tiempo?*  
    **Respuesta ODD:** El sistema debe manejar concurrencia. La primera solicitud que confirme la transacción bloquea el slot; la segunda recibe un mensaje claro de no disponibilidad sin degradar el sistema.
 2. *¿Es necesario recordar un usuario y contraseña para jugar un partido semanal?*  
-   **Respuesta ODD:** No. El identificador de la reserva (ej. `CY-2026-X89J`) enviado al correo/pantalla es suficiente para consultar o cancelar.
+   **Respuesta ODD:** No. El identificador de la reserva (ej. `CY-7K3M9QXA`) enviado al correo/pantalla es suficiente para consultar o cancelar.
 3. *¿Hasta cuándo puede un equipo cancelar si llueve o no completan los jugadores?*  
    **Respuesta ODD:** Debe existir una regla de ventana temporal (ej. hasta 2 horas antes de la hora de inicio). Pasado ese límite, el turno se considera fijo.
 

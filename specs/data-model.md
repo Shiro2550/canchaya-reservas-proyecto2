@@ -5,7 +5,7 @@
 **Rol Responsable:** Estudiante 2 — Architecture / Development Lead (David)  
 **Versión:** 1.0.0  
 **Fecha:** 2026-11-15  
-**Estado:** Propuesta en revisión (issue #21, cierra #14)  
+**Estado:** Aprobado (PR #23, cierra #21 y #14)  
 
 ---
 

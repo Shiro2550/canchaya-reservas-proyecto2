@@ -152,4 +152,21 @@
 
 ---
 
+### Entrada 11: Validación del DDL en MySQL y Cierre de Pendientes de Especificación (Issue #22)
+* **Fecha:** 2026-11-15
+* **Responsable:** Estudiante 2 — Architecture / Development Lead (David)
+* **Actividad:** Tras fusionar el PR #23 (cierra #21 y #14), validar el DDL de `specs/data-model.md` en MySQL local y resolver el issue #22 en la rama `feature/22-spec-cancel-order-ids`, con revisión pendiente del Product Lead.
+* **IA Utilizada:** Claude Code (aplicación de escritorio) — Claude Opus 5.5, usando GitHub CLI (`gh`) y el cliente `mysql`.
+* **Solicitud (Prompt):**
+  > *"Adelante, el issue 2 resolvámoslo. Ivan terminó, me toca a mí."* Aclaraciones: el límite de anticipación se mantiene en 30 días y el Dev Lead resuelve #22.
+* **Resultado Obtenido:**
+  * **DDL validado en MySQL 8.4.13** en una base temporal que se eliminó al terminar: 10 comprobaciones correctas. Se rechazan la doble reserva confirmada en el mismo turno (error 1062 del índice `uq_bookings_active_slot`), los códigos fuera del alfabeto o en minúsculas, los horarios fuera de 08:00–23:00, una cancelación sin `cancelled_at` y una cancha inexistente. Se aceptan el mismo turno en otra cancha y volver a reservar un turno cancelado. La consulta de solapamiento usa el índice `idx_bookings_court_date_status`.
+  * `specs/business-rules.md`: secciones 2.1 a 2.4 con el orden de validación para crear (422 → 400 → 404 → 409), para cancelar (404 → 409 → 400), el rango de fechas de la grilla y la respuesta 404 para códigos mal formados.
+  * `specs/acceptance-criteria.md`: ejemplos de `booking_id` válidos según el alfabeto de BR-03, escenarios de código mal formado y de cancelar una reserva ya cancelada, y una nueva Característica 4 para la grilla de disponibilidad.
+  * `specs/outcomes.md`, `specs/api.md` (v1.2.0) y `specs/architecture.md` alineados con esas reglas.
+* **Decisión Tomada:**
+  Mantener el máximo de 30 días también para consultar la grilla; responder 404 a códigos mal formados para no revelar el formato válido; y, para cancelar, buscar primero la reserva y después validar su estado y el plazo. Con esto se completa el milestone 2 (#2).
+
+---
+
 *(Nuevas entradas se añadirán conforme los Estudiantes 2 y 3 avancen en arquitectura, implementación y testing, o cuando se aplique el cambio inesperado de requerimiento).*

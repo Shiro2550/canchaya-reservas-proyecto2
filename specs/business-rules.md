@@ -88,14 +88,44 @@ stateDiagram-v2
 
 ## 2. Canalización de Validación y Códigos HTTP Unificados
 
-Para garantizar coherencia absoluta entre el contrato de API, la implementación y las pruebas automatizadas, las peticiones entrantes atraviesan un orden secuencial de validación estricto:
+Para garantizar coherencia absoluta entre el contrato de API, la implementación y las pruebas automatizadas, las peticiones entrantes atraviesan un orden secuencial de validación estricto. La primera fase que falla determina la respuesta.
+
+### 2.1 Creación de Reserva (`POST /api/v1/bookings`)
 
 | Fase | Tipo de Validación | Errores Típicos | Código HTTP |
 | :--- | :--- | :--- | :---: |
 | **1. Esquema y Formato** | Sintaxis JSON, tipos de datos, formato de email, longitud de nombre (3-80), teléfono (7-15 dígitos). | `customer_email` inválido, nombre vacío, campos faltantes. | **422 Unprocessable Entity** |
-| **2. Reglas Temporales y Negocio** | Restricciones de BR-02 y BR-05 evaluadas en `America/Panama`. | Fuera de 08:00-23:00, hora no exacta (ej. 17:30), fecha/hora en el pasado, fecha > 30 días, cancelación tardía (< 2 h). | **400 Bad Request** |
-| **3. Existencia de Recurso** | Verificación en base de datos de la entidad solicitada. | `court_id` inexistente o inactiva, `booking_id` inexistente. | **404 Not Found** |
-| **4. Integridad y Concurrencia** | Regla anticolisión BR-01 e inmutabilidad de estados terminales. | Cancha ya ocupada por otra reserva `CONFIRMADA` (colisión), o intento de cancelar reserva `CANCELADA`/`COMPLETADA`. | **409 Conflict** |
+| **2. Reglas Temporales y Negocio** | Restricciones de BR-02 evaluadas en `America/Panama`. | Fuera de 08:00-23:00, hora no exacta (ej. 17:30), fecha/hora en el pasado, fecha > 30 días. | **400 Bad Request** |
+| **3. Existencia de Recurso** | Verificación en base de datos de la cancha solicitada. | `court_id` inexistente o inactiva. | **404 Not Found** |
+| **4. Integridad y Concurrencia** | Regla anticolisión BR-01. | Cancha ya ocupada por otra reserva `CONFIRMADA` (colisión). | **409 Conflict** |
+
+### 2.2 Cancelación de Reserva (`POST /api/v1/bookings/{booking_id}/cancel`)
+
+Para cancelar, primero hay que encontrar la reserva: su hora de inicio y su estado solo se conocen después de buscarla. Por eso el orden es distinto al de la creación:
+
+| Fase | Tipo de Validación | Errores Típicos | Código HTTP |
+| :--- | :--- | :--- | :---: |
+| **1. Existencia de Recurso** | Búsqueda de la reserva por su código. | `booking_id` inexistente o mal formado (ver 2.4). | **404 Not Found** |
+| **2. Estado Terminal (BR-04)** | La reserva ya está `CANCELADA` o `COMPLETADA`. | Cancelar dos veces, o cancelar un turno ya jugado. | **409 Conflict** — mensaje: `"La reserva no puede cancelarse porque ya se encuentra cancelada o completada."` |
+| **3. Ventana de Cancelación (BR-05)** | Faltan menos de 2 horas para el inicio. | Cancelación tardía. | **400 Bad Request** (`LATE_CANCELLATION`) |
+
+Así, una reserva ya `CANCELADA` siempre responde **409**, aunque falten menos de 2 horas para su inicio.
+
+### 2.3 Consulta de Disponibilidad (`GET /api/v1/courts/{id}/availability`)
+
+La grilla usa el mismo rango de fechas que las reservas (BR-02):
+
+| Fase | Validación | Código HTTP |
+| :--- | :--- | :---: |
+| **1. Formato** | `date` falta o no tiene el formato `YYYY-MM-DD`. | **422** (`VALIDATION_ERROR`) |
+| **2. Rango de fechas** | Fecha anterior a hoy → `PAST_DATE_TIME`; fecha a más de 30 días → `MAX_ADVANCE_EXCEEDED`. | **400** |
+| **3. Existencia** | Cancha inexistente o inactiva. | **404** (`COURT_NOT_FOUND`) |
+
+La fecha de hoy es válida: las horas que ya transcurrieron se devuelven con estado `PASADO`.
+
+### 2.4 Códigos de Reserva Mal Formados
+
+Si el `booking_id` recibido en la URL no cumple el formato de BR-03 (por ejemplo `abc` o `cy-7k3m9qxa`), el sistema responde **404 Not Found** (`BOOKING_NOT_FOUND`), con el mismo mensaje que para un código inexistente. Así no se revela a quien intenta adivinar códigos cuál es el formato válido.
 
 ### Formato Unificado de Error (JSON)
 

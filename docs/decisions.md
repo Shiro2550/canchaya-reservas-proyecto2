@@ -117,7 +117,7 @@
 ---
 
 ### ADR-008: Stack Tecnológico TypeScript + MySQL y Decisiones del Modelo de Datos y la API
-* **Estado:** Propuesto (issue #21)
+* **Estado:** Aceptado (PR #23)
 * **Fecha:** 2026-11-15
 * **Autores:** David (Architecture Lead)
 * **Contexto:**  

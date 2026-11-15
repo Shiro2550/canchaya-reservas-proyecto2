@@ -19,7 +19,7 @@ Característica: Prevención de doble reserva y solapamiento de horarios
 
   Antecedentes:
     Dado que existe la cancha "Cancha 1 - Fútbol 7" con ID "C1"
-    Y la cancha "C1" ya tiene una reserva confirmada con ID "CY-EXISTENTE-01" 
+    Y la cancha "C1" ya tiene una reserva confirmada con ID "CY-EX7STNT2" 
       para la fecha "2026-11-20" en el intervalo de "18:00" a "19:00"
 
   Escenario: Intento de reserva en el mismo horario exacto (Solapamiento Total)
@@ -60,7 +60,7 @@ Característica: Prevención de doble reserva y solapamiento de horarios
     Y debe retornar código 201 Creado.
 
   Escenario: Reserva en horario que pertenecía a una reserva previamente cancelada
-    Dado que la reserva "CY-EXISTENTE-01" en la cancha "C1" para las "18:00" fue "CANCELADA"
+    Dado que la reserva "CY-EX7STNT2" en la cancha "C1" para las "18:00" fue "CANCELADA"
     Cuando un nuevo cliente solicita reservar la cancha "C1" para esa misma fecha a las "18:00"
     Entonces el sistema debe permitir la reserva exitosamente
     Y debe retornar código 201 Creado.
@@ -143,34 +143,77 @@ Característica: Autogestión de reserva por código identificador
     Y debe mostrar la cancha asignada, fecha, hora de inicio, hora de fin y estado "CONFIRMADA".
 
   Escenario: Consulta con código de reserva inexistente
-    Cuando solicito la consulta de un código "CY-INEXISTENTE-99"
+    Cuando solicito la consulta de un código "CY-ZZZZZZZZ"
+    Entonces el sistema debe responder con código 404 No Encontrado
+    Y el mensaje debe indicar "No se encontró ninguna reserva asociada al código provisto".
+
+  Escenario: Consulta con código de reserva mal formado
+    Cuando solicito la consulta de un código "abc"
     Entonces el sistema debe responder con código 404 No Encontrado
     Y el mensaje debe indicar "No se encontró ninguna reserva asociada al código provisto".
 
   Escenario: Cancelación a tiempo (Mayor o igual a 2 horas de anticipación)
     Dado que la hora actual es "14:00" del día "2026-11-20" en zona America/Panama
-    Y existe una reserva activa "CY-8M2K1L90" para las "18:00" del mismo día (4 horas de anticipación)
-    Cuando el cliente solicita cancelar la reserva "CY-8M2K1L90"
+    Y existe una reserva activa "CY-8M2K3L9Q" para las "18:00" del mismo día (4 horas de anticipación)
+    Cuando el cliente solicita cancelar la reserva "CY-8M2K3L9Q"
     Entonces el sistema debe responder con código 200 OK
     Y el estado de la reserva debe cambiar a "CANCELADA"
     Y el slot de las "18:00" debe quedar disponible inmediatamente para otros usuarios.
 
   Escenario: Rechazo de cancelación fuera de plazo (Menor a 2 horas de anticipación)
     Dado que la hora actual es "17:15" del día "2026-11-20" en zona America/Panama
-    Y existe una reserva activa "CY-9N4P2Q81" para las "18:00" del mismo día (45 minutos de anticipación)
-    Cuando el cliente solicita cancelar la reserva "CY-9N4P2Q81"
+    Y existe una reserva activa "CY-9N4P2Q8R" para las "18:00" del mismo día (45 minutos de anticipación)
+    Cuando el cliente solicita cancelar la reserva "CY-9N4P2Q8R"
     Entonces el sistema debe rechazar la cancelación con código 400 Solicitud Incorrecta
     Y el mensaje debe indicar "No es posible cancelar la reserva: el plazo límite es de 2 horas previas al inicio del turno."
     Y la reserva debe permanecer en estado "CONFIRMADA".
+
+  Escenario: Rechazo de cancelación de una reserva ya cancelada (BR-04)
+    Dado que la hora actual es "17:15" del día "2026-11-20" en zona America/Panama
+    Y la reserva "CY-EX7STNT2" para las "18:00" del mismo día ya fue "CANCELADA"
+    Cuando el cliente solicita cancelar la reserva "CY-EX7STNT2"
+    Entonces el sistema debe rechazar la cancelación con código 409 Conflicto
+    Y el mensaje debe indicar "La reserva no puede cancelarse porque ya se encuentra cancelada o completada."
+    Y la reserva debe permanecer en estado "CANCELADA".
 ```
 
 ---
 
-## 4. Guía para el Estudiante 3 (QA / DevOps Lead)
+## Característica 4: Consulta de Disponibilidad por Fecha (RF-02 y BR-02)
+
+```gherkin
+Característica: Grilla de disponibilidad dentro del rango permitido
+  Como cliente que busca un horario libre
+  Quiero ver la grilla de una cancha para una fecha
+  Para elegir un turno sin llamar al complejo.
+
+  Escenario: Grilla del día actual con horas transcurridas
+    Dado que la hora actual es "10:30" del día "2026-11-20" en zona America/Panama
+    Cuando consulto la disponibilidad de la cancha "C1" para la fecha "2026-11-20"
+    Entonces el sistema debe responder con código 200 OK
+    Y los slots de "08:00", "09:00" y "10:00" deben tener estado "PASADO"
+    Y el slot de "11:00" debe tener estado "DISPONIBLE" si no tiene reservas confirmadas.
+
+  Escenario: Rechazo de consulta de una fecha pasada
+    Dado que la fecha actual es "2026-11-20"
+    Cuando consulto la disponibilidad de la cancha "C1" para la fecha "2026-11-19"
+    Entonces el sistema debe responder con código 400 Solicitud Incorrecta
+    Y el código de error debe ser "PAST_DATE_TIME".
+
+  Escenario: Rechazo de consulta a más de 30 días
+    Dado que la fecha actual es "2026-11-20"
+    Cuando consulto la disponibilidad de la cancha "C1" para la fecha "2026-12-22"
+    Entonces el sistema debe responder con código 400 Solicitud Incorrecta
+    Y el código de error debe ser "MAX_ADVANCE_EXCEEDED".
+```
+
+---
+
+## 5. Guía para el Estudiante 3 (QA / DevOps Lead)
 
 * **Convención de Nombres y Stack de Testing:** Siguiendo la arquitectura TypeScript (Vitest + Supertest), la suite se organizará en:
   * **Prueba Primordial de Anticolisión (OBLIGATORIA):** `tests/integration/conflict.test.ts` implementa las aserciones de concurrencia y conflicto (Característica 1).
   * **Prueba de Dominio Matemático BR-01:** `tests/unit/collision.test.ts` valida los 5 casos teóricos de solapamiento del algoritmo anticolisión.
   * **Prueba de Cancelación y Ventana de 2 horas:** `tests/integration/cancellation.test.ts` valida con mocks de reloj la regla BR-05 (Característica 3).
-  * **Prueba de Reglas de Negocio y Validación:** `tests/integration/booking-rules.test.ts` valida horarios operativos, anticipación de 30 días, fechas pasadas y validaciones de formato (Característica 2).
+  * **Prueba de Reglas de Negocio y Validación:** `tests/integration/booking-rules.test.ts` valida horarios operativos, anticipación de 30 días, fechas pasadas y validaciones de formato (Característica 2), además del rango de fechas de la grilla de disponibilidad (Característica 4).
 * **Automatización en CI:** Todos los tests deben ejecutarse en verde en el flujo de GitHub Actions.
