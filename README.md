@@ -99,7 +99,17 @@ Para cumplir con la sección 13 de la rúbrica del proyecto (*"Introducir un cam
 | Frontend | React + Vite + Tailwind CSS + shadcn/ui |
 | Pruebas | Vitest + Supertest |
 
-Detalle en `specs/architecture.md`, `specs/data-model.md` y `specs/api.md`. Las instrucciones para ejecutar el proyecto se agregarán al completar el andamiaje (TASK-10).
+Detalle en `specs/architecture.md`, `specs/data-model.md` y `specs/api.md`. Instrucciones completas en `specs/architecture.md` (sección 13).
+
+**Inicio rápido:**
+```bash
+cp .env.example .env          # variables de desarrollo
+docker compose up -d          # solo si no tienes MySQL 8.4 local
+npm install
+npm run db:deploy && npm run db:seed
+npm run dev                   # web: http://localhost:5173 · API: http://127.0.0.1:3000/docs
+npm test                      # pruebas automatizadas
+```
 
 ---
 
